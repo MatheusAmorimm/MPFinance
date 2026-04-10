@@ -1,0 +1,27 @@
+{
+  "name": "mpfinance",
+  "version": "1.0.0",
+  "description": "MPFinance é um sistema de controle financeiro completo, com separação bem definida de responsabilidades através dos princípios de arquitetura limpa (Clean Architecture).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MatheusAmorimm/MPFinance.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MatheusAmorimm/MPFinance/issues"
+  },
+  "homepage": "https://github.com/MatheusAmorimm/MPFinance#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "husky": "^9.1.7"
+  }
+}

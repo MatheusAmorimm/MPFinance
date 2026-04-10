@@ -1,0 +1,15 @@
+# Ignora arquivos de build locais
+**/bin/
+**/obj/
+
+# Ignora pastas do VS/Rider
+.vs/
+.idea/
+.vscode/
+
+# Ignora arquivos de ambiente local
+.env
+
+# Ignora logs e caches
+*.log
+.docker/

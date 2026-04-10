@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="MPFinance.API/MPFinance.API.csproj" />
+  <Project Path="MPFinance.Application/MPFinance.Application.csproj" />
+  <Project Path="MPFinance.Domain/MPFinance.Domain.csproj" />
+  <Project Path="MPFinance.Infrastructure/MPFinance.Infrastructure.csproj" />
+</Solution>

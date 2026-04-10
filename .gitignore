@@ -1,0 +1,51 @@
+# ===============================
+# Agent & IDEs
+# ===============================
+.agent/
+.vscode/
+.claude/
+.gemini/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ===============================
+# Secrets & Env
+# ===============================
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+
+# ===============================
+# Docker
+# ===============================
+.docker/data/
+mysql-data/
+
+# ===============================
+# Backend (.NET)
+# ===============================
+[Bb]in/
+[Oo]bj/
+*.log
+
+# ===============================
+# Frontend (Node.js / Angular)
+# ===============================
+node_modules/
+dist/
+dist-server/
+.angular/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+
+# ===============================
+# OS Generated
+# ===============================
+.DS_Store
+Thumbs.db

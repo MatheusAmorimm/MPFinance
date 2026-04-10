@@ -1,0 +1,117 @@
+/* Variáveis do MPFinance */
+$roxo-eletrico: #8B5CF6;
+$verde-neon: #10B981;
+$preto-profundo: #0F172A;
+$branco-gelo: #F8FAFC;
+$cinza-input: #1F2937;
+$cinza-borda: #374151;
+
+/* Configuração Base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    height: 100%;
+    background-color: $preto-profundo;
+    color: $branco-gelo;
+    font-family: 'Sora', sans-serif;
+}
+
+/* Utilitários de Layout (Substituindo o que o Tailwind faria) */
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.min-h-screen {
+    min-height: 100vh;
+}
+
+/* Componente Card */
+.card-auth {
+    max-width: 400px;
+    width: 100%;
+    padding: 2rem;
+    background: rgba(31, 41, 55, 0.4); // gray-900 com opacidade
+    border: 1px solid $cinza-borda;
+    border-radius: 1.5rem;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Tipografia */
+.text-center {
+    text-align: center;
+}
+
+.text-roxo {
+    color: $roxo-eletrico;
+}
+
+.text-gray {
+    color: #9CA3AF;
+}
+
+/* Inputs Customizados */
+.form-group {
+    margin-bottom: 1.25rem;
+
+    label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #D1D5DB;
+    }
+
+    input[type="email"],
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: #111827;
+        border: 1px solid $cinza-borda;
+        border-radius: 0.75rem;
+        color: $branco-gelo;
+        font-family: 'Sora', sans-serif;
+        transition: all 0.2s;
+
+        &:focus {
+            outline: none;
+            border-color: $roxo-eletrico;
+            box-shadow: 0 0 0 2px rgba($roxo-eletrico, 0.2);
+        }
+    }
+}
+
+/* Botão Principal */
+.btn-primary {
+    width: 100%;
+    padding: 1rem;
+    background-color: $roxo-eletrico;
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+
+    &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
