@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   db:
     image: mysql:8.0
     container_name: mpfinance_db
@@ -14,8 +15,31 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      # Usando um volume nomeado do Docker para evitar problemas de permissão de pasta no host
       - mpfinance_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: MPFinance.API/Dockerfile
+    container_name: mpfinance_api
+    restart: always
+    env_file: .env
+    environment:
+      # Aponta para o serviço 'db' da rede interna do Docker (não localhost)
+      DB_CONNECTION_STRING: "Server=db;Database=${MYSQL_DATABASE};Uid=${MYSQL_USER};Pwd=${MYSQL_PASSWORD};AllowPublicKeyRetrieval=true;SslMode=none;"
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:80
+    ports:
+      - "5000:80"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   mpfinance_db_data:

@@ -24,6 +24,7 @@ appsettings.Development.json
 # ===============================
 .docker/data/
 mysql-data/
+.dockerignore
 
 # ===============================
 # Backend (.NET)

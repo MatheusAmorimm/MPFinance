@@ -15,12 +15,32 @@ public class UserMap : IEntityTypeConfiguration<User>
         builder.Property(u => u.Email).IsRequired().HasMaxLength(150);
         builder.Property(u => u.PasswordHash).IsRequired();
         builder.Property(u => u.IsVerified).HasDefaultValue(false);
-        builder.Property(u => u.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.Property(u => u.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
         // Relacionamentos 1:N conforme a imagem
         builder.HasMany<Transaction>()
                .WithOne()
                .HasForeignKey(t => t.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany<FixedTransaction>()
+               .WithOne()
+               .HasForeignKey(ft => ft.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany<Goal>()
+               .WithOne()
+               .HasForeignKey(g => g.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany<PasswordReset>()
+               .WithOne(pr => pr.User)
+               .HasForeignKey(pr => pr.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany<EmailVerificationCode>()
+               .WithOne(e => e.User)
+               .HasForeignKey(e => e.UserId)
                .OnDelete(DeleteBehavior.Cascade);
     }
 }

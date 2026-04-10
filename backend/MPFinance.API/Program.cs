@@ -1,5 +1,6 @@
 using MPFinance.Infrastructure.Context;
 using MPFinance.Infrastructure.Repositories;
+using MPFinance.Infrastructure.Services;
 using MPFinance.Domain.Interfaces;
 using MPFinance.Application.Services;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
-using MPFinance.Infrastructure.Security;     // Resolve o BCryptHasher
+using MPFinance.Infrastructure.Security;
 
 Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
@@ -53,6 +54,8 @@ builder.Services.AddAuthentication(x =>
 builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
+builder.Services.AddScoped<IEmailVerificationRepository, EmailVerificationRepository>();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
 var app = builder.Build();
 
@@ -73,14 +76,11 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c => {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MPFinance API V1");
-        c.RoutePrefix = "swagger"; // Isso garante que seja localhost:5000/swagger
-    });
-}
+app.UseSwagger();
+app.UseSwaggerUI(c => {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MPFinance API V1");
+    c.RoutePrefix = "swagger";
+});
 
 //app.UseHttpsRedirection();
 app.UseAuthentication();

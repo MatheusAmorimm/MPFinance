@@ -1,41 +1,69 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  signal,
+  inject,
+} from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
-import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './login.html'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule, RouterModule],
+  templateUrl: './login.html',
 })
 export class Login {
-  loginForm: FormGroup;
+  private fb          = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router      = inject(Router);
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router
-  ) {
-    this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required]],
-      rememberMe: [false] // Campo do checkbox
-    });
+  form = this.fb.group({
+    email:      ['', [Validators.required, Validators.email]],
+    password:   ['',  Validators.required],
+    rememberMe: [false],
+  });
+
+  hasAuthError = signal(false);
+  toastMessage = signal<string | null>(null);
+  toastType    = signal<'success' | 'error'>('success');
+  loading      = signal(false);
+
+  private showToast(message: string, type: 'success' | 'error'): void {
+    this.toastMessage.set(message);
+    this.toastType.set(type);
+    setTimeout(() => this.toastMessage.set(null), 4000);
   }
 
-  onLogin() {
-    if (this.loginForm.valid) {
-      const { email, password, rememberMe } = this.loginForm.value;
-
-      this.authService.login({ email, password }, rememberMe).subscribe({
-        next: (res) => {
-          console.log('Login realizado!');
-          this.router.navigate(['/home']);
-        },
-        error: () => alert('E-mail ou senha inválidos.')
-      });
+  onLogin(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
     }
+    this.hasAuthError.set(false);
+    this.loading.set(true);
+    const { email, password, rememberMe } = this.form.value;
+
+    this.authService.login({ email, password }, rememberMe ?? false).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.showToast('Login realizado com sucesso!', 'success');
+        setTimeout(() => this.router.navigate(['/home']), 1500);
+      },
+      error: (err: unknown) => {
+        this.loading.set(false);
+
+        if ((err as { status?: number })?.status === 403) {
+          this.router.navigate(['/verify-email'], {
+            state: { email: this.form.get('email')?.value ?? '' },
+          });
+          return;
+        }
+
+        this.hasAuthError.set(true);
+        this.showToast('Senha ou E-mail incorretos.', 'error');
+      },
+    });
   }
 }

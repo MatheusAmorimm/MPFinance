@@ -14,6 +14,14 @@ export class AuthService {
         return this.http.post<any>('/api/auth/register', userData);
     }
 
+    verifyEmail(email: string, code: string): Observable<{ message: string }> {
+        return this.http.post<{ message: string }>('/api/auth/verify-email', { email, code });
+    }
+
+    resendVerification(email: string): Observable<{ message: string }> {
+        return this.http.post<{ message: string }>('/api/auth/resend-verification', { email });
+    }
+
     login(credentials: any, rememberMe: boolean): Observable<any> {
         return this.http.post<any>('/api/auth/login', credentials).pipe(
             tap(response => {

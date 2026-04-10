@@ -6,11 +6,20 @@ namespace MPFinance.Infrastructure.Context
 {
     public class MPFinanceDbContext : DbContext
     {
+        // Construtor usado pelo DI container em runtime
+        public MPFinanceDbContext() { }
+
+        // Construtor usado pela IDesignTimeDbContextFactory (dotnet ef migrations)
+        public MPFinanceDbContext(DbContextOptions<MPFinanceDbContext> options) : base(options) { }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // Uso do Singleton para obter a Connection String
-            var config = DbConfiguration.Instance;
-            optionsBuilder.UseMySql(config.ConnectionString, ServerVersion.AutoDetect(config.ConnectionString));
+            // Só configura via Singleton se não foi configurado via construtor (design-time)
+            if (!optionsBuilder.IsConfigured)
+            {
+                var config = DbConfiguration.Instance;
+                optionsBuilder.UseMySql(config.ConnectionString, ServerVersion.AutoDetect(config.ConnectionString));
+            }
         }
 
         // Mapeamento das Tabelas (Baseado na sua imagem)

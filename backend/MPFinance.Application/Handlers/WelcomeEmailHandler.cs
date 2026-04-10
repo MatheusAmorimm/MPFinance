@@ -1,14 +1,45 @@
 using MediatR;
+using MPFinance.Domain.Entities;
 using MPFinance.Domain.Events;
+using MPFinance.Domain.Interfaces;
 
 namespace MPFinance.Application.Handlers;
 
 public class WelcomeEmailHandler : INotificationHandler<UserRegisteredEvent>
 {
-    public Task Handle(UserRegisteredEvent notification, CancellationToken cancellationToken)
+    private readonly IEmailVerificationRepository _verificationRepo;
+    private readonly IEmailService _emailService;
+
+    public WelcomeEmailHandler(
+        IEmailVerificationRepository verificationRepo,
+        IEmailService emailService)
     {
-        // Aqui entraria a lógica de envio de e-mail (usando seu IEmailService)
-        Console.WriteLine($"[Observer] Enviando e-mail de boas-vindas para: {notification.User.Email}");
-        return Task.CompletedTask;
+        _verificationRepo = verificationRepo;
+        _emailService     = emailService;
+    }
+
+    public async Task Handle(UserRegisteredEvent notification, CancellationToken cancellationToken)
+    {
+        var user = notification.User;
+
+        // Limpa códigos antigos do usuário antes de gerar um novo
+        await _verificationRepo.DeleteAllForUserAsync(user.Id);
+
+        // Gera código de 6 dígitos e salva com validade de 15 minutos
+        var code = Random.Shared.Next(100_000, 999_999).ToString();
+        var verificationCode = new EmailVerificationCode(user.Id, code, DateTime.UtcNow.AddMinutes(15));
+
+        await _verificationRepo.AddAsync(verificationCode);
+        await _verificationRepo.SaveChangesAsync();
+
+        try
+        {
+            await _emailService.SendVerificationEmailAsync(user.Email, user.Name, code);
+        }
+        catch (Exception ex)
+        {
+            // Falha no envio não deve derrubar o fluxo de cadastro
+            Console.WriteLine($"[Email] Falha ao enviar verificação para {user.Email}: {ex.Message}");
+        }
     }
 }

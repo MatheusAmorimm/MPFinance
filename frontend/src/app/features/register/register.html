@@ -1,51 +1,155 @@
+@if (toastMessage()) {
+  <div
+    class="toast"
+    [class.toast-success]="toastType() === 'success'"
+    [class.toast-error]="toastType() === 'error'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMessage() }}
+  </div>
+}
+
 <div class="min-h-screen flex-center">
-    <div class="card-auth">
+  <div class="card-auth">
 
-        <div class="text-center" style="margin-bottom: 2rem;">
-            <h1 style="font-size: 2.25rem; font-weight: 800;">
-                Crie sua <span class="text-roxo">Conta</span>
-            </h1>
-            <p class="text-gray" style="margin-top: 0.5rem;">Comece sua jornada financeira hoje.</p>
-        </div>
-
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" formControlName="name" placeholder="Como iremos te chamar?">
-            </div>
-
-            <div class="form-group">
-                <label>E-mail</label>
-                <input type="email" formControlName="email" placeholder="seu@email.com">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label>Senha</label>
-                    <input type="password" formControlName="password" placeholder="••••••••">
-                </div>
-                <div class="form-group">
-                    <label>Confirmar</label>
-                    <input type="password" formControlName="confirmPassword" placeholder="••••••••">
-                </div>
-            </div>
-
-            <p *ngIf="registerForm.errors?.['mismatch'] && registerForm.get('confirmPassword')?.touched"
-                style="color: #F87171; font-size: 0.75rem; margin-bottom: 1rem; font-weight: 600;">
-                * As senhas não coincidem.
-            </p>
-
-            <button type="submit" class="btn-primary" [disabled]="registerForm.invalid" style="margin-top: 1rem;">
-                CADASTRAR AGORA
-            </button>
-        </form>
-
-        <div class="text-center" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #374151;">
-            <p class="text-gray" style="font-size: 0.875rem;">
-                Já tem uma conta?
-                <a routerLink="/login" class="text-roxo" style="font-weight: 700; text-decoration: none;">Faça login</a>
-            </p>
-        </div>
+    <div class="text-center" style="margin-bottom: 2rem;">
+      <h1 style="font-size: 2.25rem; font-weight: 800;">
+        Crie sua <span class="text-accent">Conta</span>
+      </h1>
+      <p class="text-muted" style="margin-top: 0.5rem;">Comece sua jornada financeira hoje.</p>
     </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <!-- Nome -->
+      <div class="form-group">
+        <label for="name">
+          Nome <span class="required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="Como iremos te chamar?"
+          [class.input-error]="form.get('name')?.invalid && form.get('name')?.touched"
+          aria-required="true"
+        />
+        @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+          <span class="field-error" role="alert">Nome é obrigatório.</span>
+        }
+        @if (form.get('name')?.hasError('minlength') && form.get('name')?.touched) {
+          <span class="field-error" role="alert">Nome deve ter ao menos 3 caracteres.</span>
+        }
+      </div>
+
+      <!-- E-mail -->
+      <div class="form-group">
+        <label for="reg-email">
+          E-mail <span class="required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="reg-email"
+          type="email"
+          formControlName="email"
+          placeholder="seu@email.com"
+          [class.input-error]="form.get('email')?.invalid && form.get('email')?.touched"
+          aria-required="true"
+        />
+        @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+          <span class="field-error" role="alert">E-mail é obrigatório.</span>
+        }
+        @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+          <span class="field-error" role="alert">Informe um e-mail válido.</span>
+        }
+      </div>
+
+      <!-- Senha -->
+      <div class="form-group">
+        <label for="reg-password">
+          Senha <span class="required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="reg-password"
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          [class.input-error]="form.get('password')?.invalid && form.get('password')?.touched"
+          aria-required="true"
+          aria-describedby="password-rules"
+        />
+
+        @if (form.get('password')?.dirty) {
+          <ul class="password-rules" id="password-rules" aria-label="Requisitos da senha">
+            <li
+              [class.rule-ok]="passwordRules().minLength"
+              [class.rule-fail]="!passwordRules().minLength"
+            >
+              {{ passwordRules().minLength ? '✓' : '✗' }} Mínimo 8 caracteres
+            </li>
+            <li
+              [class.rule-ok]="passwordRules().hasUpper"
+              [class.rule-fail]="!passwordRules().hasUpper"
+            >
+              {{ passwordRules().hasUpper ? '✓' : '✗' }} Uma letra maiúscula
+            </li>
+            <li
+              [class.rule-ok]="passwordRules().hasLower"
+              [class.rule-fail]="!passwordRules().hasLower"
+            >
+              {{ passwordRules().hasLower ? '✓' : '✗' }} Uma letra minúscula
+            </li>
+            <li
+              [class.rule-ok]="passwordRules().hasNumber"
+              [class.rule-fail]="!passwordRules().hasNumber"
+            >
+              {{ passwordRules().hasNumber ? '✓' : '✗' }} Um número
+            </li>
+            <li
+              [class.rule-ok]="passwordRules().hasSpecial"
+              [class.rule-fail]="!passwordRules().hasSpecial"
+            >
+              {{ passwordRules().hasSpecial ? '✓' : '✗' }} Um caractere especial (!&#64;#$%...)
+            </li>
+          </ul>
+        }
+      </div>
+
+      <!-- Confirmar Senha -->
+      <div class="form-group">
+        <label for="confirmPassword">
+          Confirmar Senha <span class="required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          placeholder="••••••••"
+          [class.input-error]="form.errors?.['mismatch'] && form.get('confirmPassword')?.touched"
+          aria-required="true"
+        />
+        @if (form.errors?.['mismatch'] && form.get('confirmPassword')?.touched) {
+          <span class="field-error" role="alert">As senhas não coincidem.</span>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="loading()"
+        style="margin-top: 1rem;"
+      >
+        @if (loading()) { Criando conta... } @else { CADASTRAR AGORA }
+      </button>
+
+    </form>
+
+    <div class="text-center" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #3F3F46;">
+      <p class="text-muted" style="font-size: 0.875rem;">
+        Já tem uma conta?
+        <a routerLink="/login" class="text-accent" style="font-weight: 700; text-decoration: none;">Faça login</a>
+      </p>
+    </div>
+
+  </div>
 </div>

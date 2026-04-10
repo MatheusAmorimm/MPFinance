@@ -1,0 +1,100 @@
+@if (toastMessage()) {
+  <div
+    class="toast"
+    [class.toast-success]="toastType() === 'success'"
+    [class.toast-error]="toastType() === 'error'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMessage() }}
+  </div>
+}
+
+<div class="min-h-screen flex-center">
+  <div class="card-auth" style="max-width: 480px;">
+
+    <!-- Header -->
+    <div class="text-center" style="margin-bottom: 2rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;" aria-hidden="true">✉️</div>
+      <h1 style="font-size: 1.75rem; font-weight: 800;">
+        Verifique seu <span class="text-accent">E-mail</span>
+      </h1>
+      <p class="text-muted" style="margin-top: 0.75rem; font-size: 0.9rem; line-height: 1.6;">
+        Enviamos um código de 6 dígitos para<br />
+        <strong style="color: #FFFBEB;">{{ email() }}</strong>
+      </p>
+    </div>
+
+    <!-- OTP Form -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" (paste)="onPaste($event)">
+
+      <div
+        class="otp-container"
+        role="group"
+        aria-label="Código de verificação de 6 dígitos"
+      >
+        @for (i of digits; track i) {
+          <input
+            [id]="'digit-' + i"
+            [formControlName]="'d' + i"
+            type="text"
+            inputmode="numeric"
+            maxlength="1"
+            autocomplete="one-time-code"
+            class="otp-input"
+            [class.otp-error]="hasCodeError()"
+            [attr.aria-label]="'Dígito ' + (i + 1)"
+            (input)="onDigitInput($event, i)"
+            (keydown)="onKeydown($event, i)"
+          />
+        }
+      </div>
+
+      @if (hasCodeError()) {
+        <p
+          style="text-align:center; color:#F87171; font-size:0.8rem; font-weight:600; margin-bottom:1rem;"
+          role="alert"
+        >
+          Código inválido ou expirado. Tente novamente.
+        </p>
+      }
+
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="form.invalid || loading()"
+      >
+        @if (loading()) { Verificando... } @else { VERIFICAR E-MAIL }
+      </button>
+
+    </form>
+
+    <!-- Resend -->
+    <div class="text-center" style="margin-top: 1.75rem;">
+      <p class="text-muted" style="font-size: 0.875rem;">
+        Não recebeu o código?
+      </p>
+      <button
+        type="button"
+        class="btn-ghost"
+        style="margin-top: 0.5rem;"
+        [disabled]="resendCooldown() > 0"
+        (click)="resend()"
+      >
+        @if (resendCooldown() > 0) {
+          Reenviar em {{ resendCooldown() }}s
+        } @else {
+          Reenviar código
+        }
+      </button>
+    </div>
+
+    <!-- Back -->
+    <div class="text-center" style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid #3F3F46;">
+      <a routerLink="/register" class="text-muted" style="font-size: 0.8rem; text-decoration: none;">
+        ← Voltar ao cadastro
+      </a>
+    </div>
+
+  </div>
+</div>

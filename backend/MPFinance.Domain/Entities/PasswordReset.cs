@@ -1,15 +1,19 @@
-using System;
+namespace MPFinance.Domain.Entities;
 
-namespace MPFinance.Domain.Entities
+public class PasswordReset
 {
-    public class PasswordReset
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public string Token { get; set; } = string.Empty;
-        public DateTime ExpiresAt { get; set; }
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public string Token { get; private set; }
+    public DateTime ExpiresAt { get; private set; }
 
-        // Propriedade de navegação do Entity Framework
-        public User? User { get; set; }
+    public User? User { get; set; }
+
+    public PasswordReset(Guid userId, string token, DateTime expiresAt)
+    {
+        Id = Guid.NewGuid();
+        UserId = userId;
+        Token = token;
+        ExpiresAt = expiresAt;
     }
 }

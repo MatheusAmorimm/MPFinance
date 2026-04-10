@@ -1,12 +1,16 @@
-/* Variáveis do MPFinance */
-$roxo-eletrico: #8B5CF6;
-$verde-neon: #10B981;
-$preto-profundo: #0F172A;
-$branco-gelo: #F8FAFC;
-$cinza-input: #1F2937;
-$cinza-borda: #374151;
+/* Paleta High-Contrast Mono */
+$amarelo-limao:  #D9F99D;   // CTA principal
+$preto-fosco:    #18181B;   // Background
+$violeta-escuro: #4C1D95;   // Detalhes, bordas, nav
+$perola:         #FFFBEB;   // Texto primário, cards de conteúdo
 
-/* Configuração Base */
+/* Apoio */
+$cinza-card:  #27272A;
+$cinza-input: #1C1C1F;
+$cinza-borda: #3F3F46;
+$cinza-texto: #A1A1AA;
+
+/* Reset */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -16,12 +20,12 @@ $cinza-borda: #374151;
 html,
 body {
     height: 100%;
-    background-color: $preto-profundo;
-    color: $branco-gelo;
+    background-color: $preto-fosco;
+    color: $perola;
     font-family: 'Sora', sans-serif;
 }
 
-/* Utilitários de Layout (Substituindo o que o Tailwind faria) */
+/* Layout */
 .flex-center {
     display: flex;
     align-items: center;
@@ -32,32 +36,41 @@ body {
     min-height: 100vh;
 }
 
-/* Componente Card */
+/* Card de autenticação */
 .card-auth {
-    max-width: 400px;
+    max-width: 440px;
     width: 100%;
-    padding: 2rem;
-    background: rgba(31, 41, 55, 0.4); // gray-900 com opacidade
-    border: 1px solid $cinza-borda;
+    padding: 2.5rem;
+    background: $cinza-card;
+    border: 1px solid $violeta-escuro;
     border-radius: 1.5rem;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow:
+        0 0 40px rgba($violeta-escuro, 0.2),
+        0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 /* Tipografia */
-.text-center {
-    text-align: center;
+.text-center { text-align: center; }
+.text-accent  { color: $amarelo-limao; }
+.text-muted   { color: $cinza-texto; }
+.text-roxo    { color: $violeta-escuro; } // retrocompatibilidade
+
+/* Asterisco de campo obrigatório */
+.required {
+    color: $amarelo-limao;
+    margin-left: 2px;
 }
 
-.text-roxo {
-    color: $roxo-eletrico;
+/* Mensagem de erro abaixo do campo */
+.field-error {
+    display: block;
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    color: #F87171;
+    font-weight: 500;
 }
 
-.text-gray {
-    color: #9CA3AF;
-}
-
-/* Inputs Customizados */
+/* Inputs */
 .form-group {
     margin-bottom: 1.25rem;
 
@@ -66,52 +79,177 @@ body {
         font-size: 0.875rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
-        color: #D1D5DB;
+        color: $perola;
     }
 
-    input[type="email"],
-    input[type="text"],
-    input[type="password"] {
+    input[type='email'],
+    input[type='text'],
+    input[type='password'] {
         width: 100%;
         padding: 0.75rem 1rem;
-        background-color: #111827;
+        background-color: $cinza-input;
         border: 1px solid $cinza-borda;
         border-radius: 0.75rem;
-        color: $branco-gelo;
+        color: $perola;
         font-family: 'Sora', sans-serif;
-        transition: all 0.2s;
+        font-size: 0.9rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+
+        &::placeholder { color: #52525B; }
 
         &:focus {
             outline: none;
-            border-color: $roxo-eletrico;
-            box-shadow: 0 0 0 2px rgba($roxo-eletrico, 0.2);
+            border-color: $amarelo-limao;
+            box-shadow: 0 0 0 2px rgba($amarelo-limao, 0.15);
+        }
+
+        &.input-error {
+            border-color: #EF4444;
+            box-shadow: 0 0 0 2px rgba(#EF4444, 0.15);
         }
     }
 }
 
-/* Botão Principal */
+/* Regras de senha dinâmicas */
+.password-rules {
+    list-style: none;
+    margin-top: 0.625rem;
+    padding: 0.625rem 0.875rem;
+    background: rgba($preto-fosco, 0.6);
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    li {
+        font-size: 0.75rem;
+        font-weight: 500;
+        transition: color 0.25s;
+    }
+
+    .rule-ok   { color: $amarelo-limao; }
+    .rule-fail { color: $cinza-texto; }
+}
+
+/* Toast de notificação */
+.toast {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    padding: 0.875rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    max-width: 360px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    animation: toast-in 0.3s ease;
+
+    &.toast-success {
+        background: $amarelo-limao;
+        color: $preto-fosco;
+    }
+
+    &.toast-error {
+        background: #EF4444;
+        color: #fff;
+    }
+}
+
+@keyframes toast-in {
+    from { transform: translateX(110%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* Inputs OTP (verificação de e-mail) */
+.otp-container {
+    display: flex;
+    gap: 0.625rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.otp-input {
+    width: 3rem;
+    height: 3.5rem;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    background-color: $cinza-input;
+    border: 2px solid $cinza-borda;
+    border-radius: 0.75rem;
+    color: $amarelo-limao;
+    font-family: 'Sora', sans-serif;
+    caret-color: $amarelo-limao;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+        outline: none;
+        border-color: $amarelo-limao;
+        box-shadow: 0 0 0 3px rgba($amarelo-limao, 0.2);
+    }
+
+    &.otp-error {
+        border-color: #EF4444;
+        box-shadow: 0 0 0 2px rgba(#EF4444, 0.15);
+        animation: shake 0.3s ease;
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-4px); }
+    75%       { transform: translateX(4px); }
+}
+
+/* Botão ghost (reenviar código) */
+.btn-ghost {
+    background: none;
+    border: none;
+    color: $amarelo-limao;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity 0.2s;
+
+    &:hover:not(:disabled) { opacity: 0.75; }
+
+    &:disabled {
+        color: $cinza-texto;
+        cursor: not-allowed;
+        text-decoration: none;
+    }
+}
+
+/* Botão principal */
 .btn-primary {
     width: 100%;
     padding: 1rem;
-    background-color: $roxo-eletrico;
-    color: white;
+    background-color: $amarelo-limao;
+    color: $preto-fosco;
     border: none;
     border-radius: 0.75rem;
-    font-weight: 700;
+    font-weight: 800;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
     cursor: pointer;
     transition: transform 0.2s, opacity 0.2s;
 
-    &:hover {
-        opacity: 0.9;
+    &:hover:not(:disabled) {
+        opacity: 0.88;
         transform: translateY(-1px);
     }
 
-    &:active {
+    &:active:not(:disabled) {
         transform: translateY(0);
     }
 
     &:disabled {
-        opacity: 0.5;
+        opacity: 0.45;
         cursor: not-allowed;
     }
 }
