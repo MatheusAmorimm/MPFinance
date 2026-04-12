@@ -543,6 +543,57 @@ $verde:          #4ADE80;
 
 .required { color: $amarelo-limao; margin-left: 2px; }
 
+/* ─── Mobile ─────────────────────────────────────── */
+
+@media (max-width: 480px) {
+    .goals-page {
+        padding: 1.25rem 1rem 5rem;
+    }
+
+    .goals-page__title {
+        font-size: 1.375rem;
+    }
+
+    .goals-page__header {
+        margin-bottom: 1.5rem;
+    }
+
+    .goals-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Modal full-width on mobile */
+    .modal-backdrop {
+        padding: 0.75rem 0.625rem;
+        align-items: flex-end;
+    }
+
+    .modal {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        max-height: 92vh;
+    }
+
+    .modal__header {
+        padding: 1.25rem 1.25rem 0;
+    }
+
+    .modal__form {
+        padding: 1.25rem;
+    }
+
+    .modal__actions {
+        flex-direction: column-reverse;
+
+        button { width: 100%; justify-content: center; }
+    }
+
+    .goal-card__cover {
+        height: 120px;
+    }
+}
+
 /* ─── Cover upload ───────────────────────────────── */
 
 .cover-upload {

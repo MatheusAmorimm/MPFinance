@@ -15,19 +15,22 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { TransactionService } from '../../core/services/transaction.service';
 import { Category, Goal, Transaction, CreateTransactionPayload } from '../../core/models/transaction.model';
+import { TutorialService } from '../../core/services/tutorial.service';
+import { DatePickerComponent } from '../../shared/components/date-picker/date-picker';
 
 export type TransactionMode = 'income' | 'expense' | 'goal';
 
 @Component({
     selector: 'app-transactions',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ReactiveFormsModule, CurrencyPipe, DatePipe],
+    imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, DatePickerComponent],
     templateUrl: './transactions.html',
     styleUrl: './transactions.scss',
 })
 export class Transactions implements OnInit {
-    private readonly service = inject(TransactionService);
-    private readonly fb      = inject(FormBuilder);
+    private readonly service         = inject(TransactionService);
+    private readonly fb              = inject(FormBuilder);
+    private readonly tutorialService = inject(TutorialService);
 
     // ─── Estado de dados ─────────────────────────────────────────────────────
     readonly transactions = signal<Transaction[]>([]);
@@ -74,6 +77,7 @@ export class Transactions implements OnInit {
 
     // ─── Ciclo de vida ───────────────────────────────────────────────────────
     ngOnInit(): void {
+        this.tutorialService.startFor('transactions');
         const now = new Date();
         this.currentMonth.set(now.getMonth() + 1);
         this.currentYear.set(now.getFullYear());

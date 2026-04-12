@@ -1,0 +1,62 @@
+@if (tutorial.isActive() && tutorial.currentStep(); as step) {
+  <!-- Spotlight -->
+  <div
+    class="tutorial-spotlight"
+    [style.top]="spotlightStyle()['top']"
+    [style.left]="spotlightStyle()['left']"
+    [style.width]="spotlightStyle()['width']"
+    [style.height]="spotlightStyle()['height']"
+    [style.display]="spotlightStyle()['display'] ?? 'block'"
+    aria-hidden="true"
+  ></div>
+
+  <!-- Tooltip -->
+  <div
+    class="tutorial-tooltip"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="step.title"
+    [style.top]="tooltipPos()['top']"
+    [style.left]="tooltipPos()['left']"
+    [style.transform]="tooltipPos()['transform']"
+    [attr.data-anim]="animKey()"
+  >
+    <div class="tutorial-tooltip__header">
+      <span class="tutorial-tooltip__counter" aria-live="polite">
+        {{ tutorial.stepIndex() + 1 }} / {{ tutorial.totalSteps() }}
+      </span>
+      <button
+        type="button"
+        class="tutorial-tooltip__skip"
+        (click)="tutorial.skip()"
+      >Pular</button>
+    </div>
+
+    <h3 class="tutorial-tooltip__title">{{ step.title }}</h3>
+    <p  class="tutorial-tooltip__body">{{ step.body }}</p>
+
+    <!-- Dots -->
+    <div class="tutorial-dots" aria-hidden="true">
+      @for (i of dotsArray(); track i) {
+        <span
+          class="tutorial-dot"
+          [class.tutorial-dot--active]="i === tutorial.stepIndex()"
+        ></span>
+      }
+    </div>
+
+    <!-- Actions -->
+    <div class="tutorial-tooltip__actions">
+      @if (!tutorial.isFirst()) {
+        <button type="button" class="tutorial-btn tutorial-btn--ghost" (click)="tutorial.prev()">
+          ← Anterior
+        </button>
+      } @else {
+        <span></span>
+      }
+      <button type="button" class="tutorial-btn tutorial-btn--primary" (click)="tutorial.next()">
+        {{ tutorial.isLast() ? 'Concluir ✓' : 'Próximo →' }}
+      </button>
+    </div>
+  </div>
+}

@@ -114,11 +114,10 @@
         <!-- Data -->
         <div class="form-group">
           <label for="date">Data de Vencimento<span class="required" aria-hidden="true">*</span></label>
-          <input
-            id="date"
-            type="date"
+          <app-date-picker
+            inputId="date"
             formControlName="date"
-            [class.input-error]="form.get('date')?.invalid && form.get('date')?.touched"
+            [hasError]="!!(form.get('date')?.invalid && form.get('date')?.touched)"
           />
           @if (form.get('date')?.hasError('required') && form.get('date')?.touched) {
             <span class="field-error" role="alert">Informe a data.</span>

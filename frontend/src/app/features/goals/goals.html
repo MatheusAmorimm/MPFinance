@@ -188,11 +188,10 @@
           <!-- Prazo -->
           <div class="form-group">
             <label for="m-deadline">Data limite <span class="required" aria-hidden="true">*</span></label>
-            <input
-              id="m-deadline"
-              type="date"
+            <app-date-picker
+              inputId="m-deadline"
               formControlName="deadline"
-              [class.input-error]="form.get('deadline')?.invalid && form.get('deadline')?.touched"
+              [hasError]="!!(form.get('deadline')?.invalid && form.get('deadline')?.touched)"
             />
             @if (form.get('deadline')?.hasError('required') && form.get('deadline')?.touched) {
               <span class="field-error" role="alert">Informe a data limite.</span>

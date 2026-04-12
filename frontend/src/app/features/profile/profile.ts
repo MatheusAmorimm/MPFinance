@@ -11,6 +11,7 @@ import { DatePipe } from '@angular/common';
 import { ProfileService, UserProfile } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth';
 import { Router } from '@angular/router';
+import { TutorialService } from '../../core/services/tutorial.service';
 
 type PasswordStep = 'idle' | 'sending' | 'otp' | 'new-password' | 'done';
 type EmailStep    = 'idle' | 'sending' | 'otp-current' | 'new-email' | 'sending-new' | 'otp-new' | 'done';
@@ -23,10 +24,11 @@ type EmailStep    = 'idle' | 'sending' | 'otp-current' | 'new-email' | 'sending-
     styleUrl: './profile.scss',
 })
 export class Profile implements OnInit {
-    private profileService = inject(ProfileService);
-    private authService    = inject(AuthService);
-    private router         = inject(Router);
-    private fb             = inject(FormBuilder);
+    private profileService  = inject(ProfileService);
+    private authService     = inject(AuthService);
+    private router          = inject(Router);
+    private fb              = inject(FormBuilder);
+    private tutorialService = inject(TutorialService);
 
     profile   = signal<UserProfile | null>(null);
     loading   = signal(true);
@@ -67,6 +69,7 @@ export class Profile implements OnInit {
 
     // ─── Lifecycle ────────────────────────────────────────────────────────────
     ngOnInit(): void {
+        this.tutorialService.startFor('profile');
         this.profileService.getProfile().subscribe({
             next: p => { this.profile.set(p); this.loading.set(false); },
             error: () => { this.error.set('Erro ao carregar perfil.'); this.loading.set(false); },

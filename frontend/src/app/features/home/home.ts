@@ -9,6 +9,7 @@ import {
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HomeService } from '../../core/services/home.service';
 import { HomeSummary } from '../../core/models/home-summary.model';
+import { TutorialService } from '../../core/services/tutorial.service';
 
 @Component({
     selector: 'app-home',
@@ -18,7 +19,8 @@ import { HomeSummary } from '../../core/models/home-summary.model';
     styleUrl: './home.scss',
 })
 export class Home implements OnInit {
-    private readonly homeService = inject(HomeService);
+    private readonly homeService  = inject(HomeService);
+    private readonly tutorialService = inject(TutorialService);
 
     readonly summary = signal<HomeSummary | null>(null);
     readonly loading = signal(true);
@@ -28,6 +30,7 @@ export class Home implements OnInit {
     readonly isPositiveBalance = computed(() => (this.summary()?.balance ?? 0) >= 0);
 
     ngOnInit(): void {
+        this.tutorialService.startFor('home');
         const now = new Date();
         const label = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
         this.currentMonth.set(label.charAt(0).toUpperCase() + label.slice(1));

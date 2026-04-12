@@ -1,0 +1,80 @@
+<div class="dp-wrapper">
+
+  <!-- Trigger input -->
+  <button
+    type="button"
+    class="dp-trigger"
+    [id]="inputId()"
+    [class.dp-trigger--open]="open()"
+    [class.dp-trigger--error]="hasError()"
+    [class.dp-trigger--disabled]="disabled()"
+    [disabled]="disabled()"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="dialog"
+    (click)="toggle()"
+  >
+    <span class="dp-trigger__text" [class.dp-trigger__text--placeholder]="!displayValue()">
+      {{ displayValue() || 'dd/mm/aaaa' }}
+    </span>
+    <svg class="dp-trigger__icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+         aria-hidden="true" focusable="false">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8"  y1="2" x2="8"  y2="6"/>
+      <line x1="3"  y1="10" x2="21" y2="10"/>
+    </svg>
+  </button>
+
+  <!-- Calendar dropdown -->
+  @if (open()) {
+    <div class="dp-calendar" role="dialog" aria-label="Selecionar data" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="dp-header">
+        <button type="button" class="dp-nav-btn" (click)="prevMonth($event)" aria-label="Mês anterior">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="15,18 9,12 15,6"/>
+          </svg>
+        </button>
+
+        <span class="dp-month-label">{{ monthLabel() }}</span>
+
+        <button type="button" class="dp-nav-btn" (click)="nextMonth($event)" aria-label="Próximo mês">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9,18 15,12 9,6"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Weekday headers -->
+      <div class="dp-weekdays" aria-hidden="true">
+        @for (wd of WEEKDAYS; track wd) {
+          <span class="dp-weekday">{{ wd }}</span>
+        }
+      </div>
+
+      <!-- Days grid -->
+      <div class="dp-days" role="grid">
+        @for (day of calendarDays(); track day.iso) {
+          <button
+            type="button"
+            role="gridcell"
+            class="dp-day"
+            [class.dp-day--current]="day.currentMonth"
+            [class.dp-day--other]="!day.currentMonth"
+            [class.dp-day--today]="day.isToday"
+            [class.dp-day--selected]="day.isSelected"
+            [attr.aria-label]="day.iso"
+            [attr.aria-pressed]="day.isSelected"
+            (click)="selectDay(day, $event)"
+          >{{ day.day }}</button>
+        }
+      </div>
+
+    </div>
+  }
+
+</div>

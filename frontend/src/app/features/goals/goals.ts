@@ -10,17 +10,20 @@ import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { GoalService } from '../../core/services/goal.service';
 import { Goal } from '../../core/models/transaction.model';
+import { TutorialService } from '../../core/services/tutorial.service';
+import { DatePickerComponent } from '../../shared/components/date-picker/date-picker';
 
 @Component({
     selector: 'app-goals',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule, ReactiveFormsModule, CurrencyPipe, DatePipe],
+    imports: [CommonModule, ReactiveFormsModule, CurrencyPipe, DatePipe, DatePickerComponent],
     templateUrl: './goals.html',
     styleUrl: './goals.scss',
 })
 export class Goals implements OnInit {
-    private goalService = inject(GoalService);
-    private fb = inject(FormBuilder);
+    private goalService      = inject(GoalService);
+    private fb               = inject(FormBuilder);
+    private tutorialService  = inject(TutorialService);
 
     goals = signal<Goal[]>([]);
     loading = signal(true);
@@ -63,6 +66,7 @@ export class Goals implements OnInit {
 
     // ─── Lifecycle ────────────────────────────────────────────────────────────
     ngOnInit(): void {
+        this.tutorialService.startFor('goals');
         this.loadGoals();
     }
 
