@@ -14,8 +14,14 @@ export class AuthService {
         return this.http.post<any>('/api/auth/register', userData);
     }
 
-    verifyEmail(email: string, code: string): Observable<{ message: string }> {
-        return this.http.post<{ message: string }>('/api/auth/verify-email', { email, code });
+    verifyEmail(email: string, code: string): Observable<{ message: string; token: string }> {
+        return this.http.post<{ message: string; token: string }>('/api/auth/verify-email', { email, code }).pipe(
+            tap(response => {
+                if (response.token) {
+                    localStorage.setItem(this.TOKEN_KEY, response.token);
+                }
+            })
+        );
     }
 
     resendVerification(email: string): Observable<{ message: string }> {

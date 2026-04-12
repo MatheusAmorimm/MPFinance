@@ -103,8 +103,7 @@ export class VerifyEmail implements OnDestroy {
     this.authService.verifyEmail(this.email(), this.code).subscribe({
       next: () => {
         this.loading.set(false);
-        this.showToast('E-mail verificado! Faça seu login.', 'success');
-        setTimeout(() => this.router.navigate(['/login']), 2000);
+        this.router.navigate(['/home']);
       },
       error: (err: unknown) => {
         this.loading.set(false);

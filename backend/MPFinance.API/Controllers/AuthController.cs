@@ -96,7 +96,8 @@ public class AuthController : ControllerBase
         await _verificationRepo.DeleteAllForUserAsync(user.Id);
         await _userRepository.SaveChangesAsync();
 
-        return Ok(new { message = "E-mail verificado com sucesso!" });
+        var token = _tokenService.GenerateToken(user);
+        return Ok(new { message = "E-mail verificado com sucesso!", token });
     }
 }
 

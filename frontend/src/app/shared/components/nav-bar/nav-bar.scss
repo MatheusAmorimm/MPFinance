@@ -6,6 +6,8 @@ $cinza-card:     #27272A;
 $cinza-borda:    #3F3F46;
 $cinza-texto:    #A1A1AA;
 
+/* ─── Navbar base ─────────────────────────────── */
+
 .nav {
     position: fixed;
     top: 0;
@@ -23,10 +25,11 @@ $cinza-texto:    #A1A1AA;
     gap: 1rem;
 }
 
+/* ─── Brand ───────────────────────────────────── */
+
 .nav__brand {
     display: flex;
     align-items: center;
-    gap: 0;
     font-size: 1.125rem;
     font-weight: 700;
     color: $perola;
@@ -45,6 +48,14 @@ $cinza-texto:    #A1A1AA;
 .nav__brand-mp {
     color: $amarelo-limao;
 }
+
+/* ─── Menu (desktop: inline | mobile: dropdown) ─ */
+
+.nav__menu {
+    display: contents; // children are treated as direct flex children of .nav
+}
+
+/* ─── Links ───────────────────────────────────── */
 
 .nav__links {
     display: flex;
@@ -81,9 +92,7 @@ $cinza-texto:    #A1A1AA;
         border-radius: 0.625rem;
     }
 
-    svg {
-        flex-shrink: 0;
-    }
+    svg { flex-shrink: 0; }
 }
 
 .nav__link--active {
@@ -95,6 +104,8 @@ $cinza-texto:    #A1A1AA;
         background-color: rgba($amarelo-limao, 0.12);
     }
 }
+
+/* ─── Logout ──────────────────────────────────── */
 
 .nav__logout {
     display: flex;
@@ -125,7 +136,96 @@ $cinza-texto:    #A1A1AA;
         border-radius: 0.625rem;
     }
 
-    svg {
-        flex-shrink: 0;
+    svg { flex-shrink: 0; }
+}
+
+/* ─── Hamburger (hidden on desktop) ──────────── */
+
+.nav__hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0.375rem;
+    border: 1px solid $cinza-borda;
+    border-radius: 0.5rem;
+    background: none;
+    color: $cinza-texto;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+
+    &:hover {
+        color: $perola;
+        border-color: $perola;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $amarelo-limao;
+        outline-offset: 2px;
+        border-radius: 0.5rem;
+    }
+}
+
+/* ─── Backdrop ────────────────────────────────── */
+
+.nav__backdrop {
+    display: none;
+}
+
+/* ─── Mobile ──────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .nav__hamburger {
+        display: flex;
+    }
+
+    .nav__menu {
+        display: none;
+        position: fixed;
+        top: 64px;
+        left: 0;
+        right: 0;
+        z-index: 99;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem 1.25rem 1.5rem;
+        background-color: $cinza-card;
+        border-bottom: 1px solid $violeta-escuro;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+        &.nav__menu--open {
+            display: flex;
+        }
+
+        nav { width: 100%; }
+    }
+
+    .nav__links {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+        width: 100%;
+    }
+
+    .nav__link {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+    }
+
+    .nav__logout {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        margin-top: 0.25rem;
+        border-radius: 0.75rem;
+    }
+
+    .nav__backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 98;
+        background: rgba(0, 0, 0, 0.4);
     }
 }
