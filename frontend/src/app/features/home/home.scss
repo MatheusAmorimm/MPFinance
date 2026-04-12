@@ -1,3 +1,4 @@
+@use 'sass:color';
 $amarelo-limao:  #D9F99D;
 $preto-fosco:    #18181B;
 $violeta-escuro: #4C1D95;
@@ -231,7 +232,7 @@ $verde:          #4ADE80;
 
     &:hover {
         border-color: $cinza-borda;
-        background: lighten($cinza-card, 2%);
+        background: color.adjust($cinza-card, $lightness: 2%);
     }
 }
 
