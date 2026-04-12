@@ -36,6 +36,82 @@ public class SmtpEmailService : IEmailService
         await client.DisconnectAsync(true);
     }
 
+    public async Task SendPasswordChangeCodeAsync(string toEmail, string userName, string code)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress("MPFinance", _senderEmail));
+        message.To.Add(new MailboxAddress(userName, toEmail));
+        message.Subject = "Código para alteração de senha — MPFinance";
+        message.Body = new TextPart("html") { Text = BuildOtpBody(userName, code, "alterar sua senha") };
+
+        using var client = new SmtpClient();
+        await client.ConnectAsync(_host, _port, SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(_senderEmail, _appPassword);
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
+    }
+
+    public async Task SendEmailChangeCodeAsync(string toEmail, string userName, string code, bool isNewEmail)
+    {
+        var context = isNewEmail ? "confirmar seu novo e-mail" : "confirmar a alteração do seu e-mail";
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress("MPFinance", _senderEmail));
+        message.To.Add(new MailboxAddress(userName, toEmail));
+        message.Subject = "Código para alteração de e-mail — MPFinance";
+        message.Body = new TextPart("html") { Text = BuildOtpBody(userName, code, context) };
+
+        using var client = new SmtpClient();
+        await client.ConnectAsync(_host, _port, SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(_senderEmail, _appPassword);
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
+    }
+
+    private static string BuildOtpBody(string userName, string code, string purpose) => $"""
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <body style="margin:0;padding:0;background-color:#18181B;font-family:'Segoe UI',sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td align="center" style="padding:2rem 1rem;">
+                <table width="500" cellpadding="0" cellspacing="0"
+                  style="background:#27272A;border-radius:1rem;border:1px solid #4C1D95;overflow:hidden;">
+                  <tr>
+                    <td style="padding:2rem;text-align:center;border-bottom:1px solid #3F3F46;">
+                      <h1 style="margin:0;font-size:1.75rem;font-weight:800;color:#D9F99D;">
+                        MP<span style="color:#FFFBEB;">Finance</span>
+                      </h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:2rem;">
+                      <p style="margin:0 0 1rem;color:#FFFBEB;font-size:1rem;">
+                        Olá, <strong>{userName}</strong>!
+                      </p>
+                      <p style="margin:0 0 2rem;color:#A1A1AA;font-size:0.9rem;line-height:1.6;">
+                        Use o código abaixo para <strong style="color:#FFFBEB;">{purpose}</strong>.
+                        Ele é válido por <strong style="color:#FFFBEB;">15 minutos</strong>.
+                      </p>
+                      <div style="text-align:center;margin:0 0 2rem;">
+                        <span style="display:inline-block;font-size:2.5rem;font-weight:800;
+                          letter-spacing:0.6rem;color:#18181B;background:#D9F99D;
+                          padding:1rem 2rem;border-radius:0.75rem;">
+                          {code}
+                        </span>
+                      </div>
+                      <p style="margin:0;color:#52525B;font-size:0.75rem;text-align:center;">
+                        Se você não solicitou esta alteração, ignore este e-mail.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+        """;
+
     private static string BuildEmailBody(string userName, string code) => $"""
         <!DOCTYPE html>
         <html lang="pt-BR">

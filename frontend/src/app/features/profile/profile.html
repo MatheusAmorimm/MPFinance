@@ -1,0 +1,251 @@
+@if (error()) {
+  <div class="toast toast-error" role="alert" aria-live="assertive">{{ error() }}</div>
+}
+
+<div class="profile-page">
+  <h1 class="profile-page__title">Meu Perfil</h1>
+
+  @if (loading()) {
+    <div class="profile-page__loading" role="status" aria-label="Carregando perfil">
+      <span class="spinner" aria-hidden="true"></span>
+    </div>
+  } @else if (profile(); as p) {
+
+    <!-- ─── Info card ─────────────────────────────────── -->
+    <section class="info-card" aria-label="Informações do perfil">
+      <div class="info-card__avatar" aria-hidden="true">{{ initials() }}</div>
+      <div class="info-card__details">
+        <p class="info-card__name">{{ p.name }}</p>
+        <p class="info-card__email">{{ p.email }}</p>
+        <p class="info-card__since">Membro desde {{ p.createdAt | date:'MMMM yyyy':'':'pt-BR' }}</p>
+      </div>
+    </section>
+
+    <!-- ─── Security section ─────────────────────────── -->
+    <section class="security-section" aria-label="Segurança">
+      <h2 class="security-section__title">Segurança</h2>
+
+      <!-- ── Alterar Senha ── -->
+      <div class="security-card">
+        <div class="security-card__header">
+          <div class="security-card__info">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span>Alterar senha</span>
+          </div>
+
+          @if (passwordStep() === 'idle') {
+            <button type="button" class="btn-outline" (click)="requestPasswordCode()">Alterar</button>
+          }
+          @if (passwordStep() === 'done') {
+            <span class="badge-success">Alterada!</span>
+          }
+        </div>
+
+        <!-- Step: sending code -->
+        @if (passwordStep() === 'sending') {
+          <p class="step-hint">Enviando código para o seu e-mail...</p>
+        }
+
+        <!-- Step: enter OTP -->
+        @if (passwordStep() === 'otp') {
+          <div class="step-body">
+            <p class="step-hint">Enviamos um código de 6 dígitos para <strong>{{ p.email }}</strong>. Digite-o abaixo.</p>
+            <div class="otp-field">
+              <input
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                class="otp-single"
+                [class.otp-error]="passwordOtpError()"
+                [value]="passwordOtp()"
+                (input)="passwordOtp.set($any($event.target).value.replace(/\D/g,'').slice(0,6))"
+                placeholder="000000"
+                aria-label="Código de verificação"
+                autocomplete="one-time-code"
+              />
+              @if (passwordOtpError()) {
+                <span class="field-error" role="alert">{{ passwordOtpError() }}</span>
+              }
+            </div>
+            <div class="step-actions">
+              <button type="button" class="btn-ghost-sm" (click)="cancelPasswordChange()">Cancelar</button>
+              <button type="button" class="btn-primary-sm" (click)="submitPasswordOtp()">Continuar</button>
+            </div>
+          </div>
+        }
+
+        <!-- Step: new password -->
+        @if (passwordStep() === 'new-password') {
+          <form [formGroup]="passwordForm" (ngSubmit)="submitNewPassword()" novalidate class="step-body">
+            <p class="step-hint">Código validado. Defina sua nova senha.</p>
+
+            <div class="form-group">
+              <label for="pw-new">Nova senha <span class="required" aria-hidden="true">*</span></label>
+              <input id="pw-new" type="password" formControlName="newPassword"
+                placeholder="Mínimo 8 caracteres"
+                [class.input-error]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched" />
+              @if (passwordForm.get('newPassword')?.hasError('required') && passwordForm.get('newPassword')?.touched) {
+                <span class="field-error" role="alert">Informe a nova senha.</span>
+              }
+              @if (passwordForm.get('newPassword')?.hasError('minlength') && passwordForm.get('newPassword')?.touched) {
+                <span class="field-error" role="alert">Mínimo de 8 caracteres.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="pw-confirm">Confirmar senha <span class="required" aria-hidden="true">*</span></label>
+              <input id="pw-confirm" type="password" formControlName="confirmPassword"
+                placeholder="Repita a nova senha"
+                [class.input-error]="passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched" />
+              @if (passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched) {
+                <span class="field-error" role="alert">As senhas não coincidem.</span>
+              }
+            </div>
+
+            <div class="step-actions">
+              <button type="button" class="btn-ghost-sm" (click)="cancelPasswordChange()" [disabled]="submitting()">Cancelar</button>
+              <button type="submit" class="btn-primary-sm" [disabled]="submitting()">
+                @if (submitting()) { Salvando... } @else { Salvar senha }
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+
+      <!-- ── Alterar E-mail ── -->
+      <div class="security-card">
+        <div class="security-card__header">
+          <div class="security-card__info">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <span>Alterar e-mail</span>
+          </div>
+
+          @if (emailStep() === 'idle') {
+            @if (emailDaysLeft()) {
+              <span class="badge-lock" [attr.title]="'Disponível em ' + emailDaysLeft() + ' dias'">
+                🔒 {{ emailDaysLeft() }}d
+              </span>
+            } @else {
+              <button type="button" class="btn-outline" (click)="requestEmailCode()">Alterar</button>
+            }
+          }
+          @if (emailStep() === 'done') {
+            <span class="badge-success">Alterado!</span>
+          }
+        </div>
+
+        <p class="security-card__hint">Permitido a cada 15 dias.</p>
+
+        <!-- Step: sending -->
+        @if (emailStep() === 'sending' || emailStep() === 'sending-new') {
+          <p class="step-hint">Enviando código...</p>
+        }
+
+        <!-- Step: OTP current email -->
+        @if (emailStep() === 'otp-current') {
+          <div class="step-body">
+            <p class="step-hint">Código enviado para <strong>{{ p.email }}</strong>. Confirme sua identidade.</p>
+            <div class="otp-field">
+              <input
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                class="otp-single"
+                [class.otp-error]="emailOtpError()"
+                [value]="emailOtp()"
+                (input)="emailOtp.set($any($event.target).value.replace(/\D/g,'').slice(0,6))"
+                placeholder="000000"
+                aria-label="Código de verificação do e-mail atual"
+                autocomplete="one-time-code"
+              />
+              @if (emailOtpError()) {
+                <span class="field-error" role="alert">{{ emailOtpError() }}</span>
+              }
+            </div>
+            <div class="step-actions">
+              <button type="button" class="btn-ghost-sm" (click)="cancelEmailChange()">Cancelar</button>
+              <button type="button" class="btn-primary-sm" (click)="submitEmailCurrentOtp()">Continuar</button>
+            </div>
+          </div>
+        }
+
+        <!-- Step: new email form -->
+        @if (emailStep() === 'new-email') {
+          <form [formGroup]="emailForm" (ngSubmit)="submitNewEmailForm()" novalidate class="step-body">
+            <p class="step-hint">Identidade confirmada. Informe o novo e-mail.</p>
+
+            <div class="form-group">
+              <label for="em-new">Novo e-mail <span class="required" aria-hidden="true">*</span></label>
+              <input id="em-new" type="email" formControlName="newEmail"
+                placeholder="novo@email.com"
+                [class.input-error]="emailForm.get('newEmail')?.invalid && emailForm.get('newEmail')?.touched" />
+              @if (emailForm.get('newEmail')?.invalid && emailForm.get('newEmail')?.touched) {
+                <span class="field-error" role="alert">Informe um e-mail válido.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="em-confirm">Confirmar e-mail <span class="required" aria-hidden="true">*</span></label>
+              <input id="em-confirm" type="email" formControlName="confirmEmail"
+                placeholder="Repita o novo e-mail"
+                [class.input-error]="emailForm.get('confirmEmail')?.invalid && emailForm.get('confirmEmail')?.touched" />
+              @if (emailForm.get('confirmEmail')?.invalid && emailForm.get('confirmEmail')?.touched) {
+                <span class="field-error" role="alert">Confirme o e-mail.</span>
+              }
+            </div>
+
+            <div class="step-actions">
+              <button type="button" class="btn-ghost-sm" (click)="cancelEmailChange()">Cancelar</button>
+              <button type="submit" class="btn-primary-sm">Enviar código para novo e-mail</button>
+            </div>
+          </form>
+        }
+
+        <!-- Step: OTP new email -->
+        @if (emailStep() === 'otp-new') {
+          <div class="step-body">
+            <p class="step-hint">Código enviado para <strong>{{ emailForm.get('newEmail')?.value }}</strong>. Confirme o novo e-mail.</p>
+            <div class="otp-field">
+              <input
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                class="otp-single"
+                [class.otp-error]="emailNewOtpError()"
+                [value]="emailNewOtp()"
+                (input)="emailNewOtp.set($any($event.target).value.replace(/\D/g,'').slice(0,6))"
+                placeholder="000000"
+                aria-label="Código de verificação do novo e-mail"
+                autocomplete="one-time-code"
+              />
+              @if (emailNewOtpError()) {
+                <span class="field-error" role="alert">{{ emailNewOtpError() }}</span>
+              }
+            </div>
+            <div class="step-actions">
+              <button type="button" class="btn-ghost-sm" (click)="cancelEmailChange()" [disabled]="submitting()">Cancelar</button>
+              <button type="button" class="btn-primary-sm" (click)="submitEmailNewOtp()" [disabled]="submitting()">
+                @if (submitting()) { Verificando... } @else { Confirmar }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- ─── Danger zone ───────────────────────────────── -->
+    <section class="danger-section" aria-label="Conta">
+      <button type="button" class="btn-logout" (click)="logout()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Sair da conta
+      </button>
+    </section>
+
+  }
+</div>

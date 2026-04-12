@@ -1,10 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MPFinance.Application.DTOs;
 using MPFinance.Application.Services;
+using System.Security.Claims;
 
 namespace MPFinance.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TransactionController : ControllerBase
 {
     private readonly FinancialFacade _financialFacade;
@@ -14,14 +18,30 @@ public class TransactionController : ControllerBase
         _financialFacade = financialFacade;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] TransactionRequest request)
+    [HttpGet]
+    public async Task<IActionResult> GetByMonth([FromQuery] int? month, [FromQuery] int? year)
     {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        var now = DateTime.UtcNow;
+        var result = await _financialFacade.GetUserTransactionsAsync(
+            userId,
+            month ?? now.Month,
+            year  ?? now.Year
+        );
+
+        return Ok(result);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateTransactionRequest request)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
         try
         {
-            // O Controller apenas recebe os dados e repassa para o Facade
             await _financialFacade.CreateTransactionWithImpactAsync(
-                request.UserId,
+                userId,
                 request.CategoryId,
                 request.Amount,
                 request.Description,
@@ -36,14 +56,21 @@ public class TransactionController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    // ─── Helper ───────────────────────────────────────────────────────────────
+
+    private bool TryGetUserId(out Guid userId)
+    {
+        userId = Guid.Empty;
+        var raw = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(raw, out userId);
+    }
 }
 
-// DTO para o Request (Clean Code: isolando o input da API)
-public record TransactionRequest(
-    Guid UserId, 
-    Guid CategoryId, 
-    decimal Amount, 
-    string Description, 
-    DateTime Date, 
+public record CreateTransactionRequest(
+    Guid CategoryId,
+    decimal Amount,
+    string Description,
+    DateTime Date,
     Guid? GoalId
 );

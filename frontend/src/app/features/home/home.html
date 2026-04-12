@@ -1,1 +1,103 @@
-<p>home works!</p>
+<div class="home">
+  @if (loading()) {
+    <div class="home__loading" role="status" aria-live="polite" aria-label="Carregando resumo financeiro">
+      <div class="spinner"></div>
+    </div>
+  } @else if (error()) {
+    <div class="home__error" role="alert">
+      <p>{{ error() }}</p>
+    </div>
+  } @else if (summary(); as s) {
+    <header class="home__header">
+      <div>
+        <p class="home__greeting">Bem-vindo de volta</p>
+        <h1 class="home__month">{{ currentMonth() }}</h1>
+      </div>
+    </header>
+
+    <section aria-labelledby="summary-heading" class="home__section">
+      <h2 id="summary-heading" class="sr-only">Resumo financeiro do mês</h2>
+      <div class="summary-cards">
+        <article class="summary-card summary-card--income">
+          <p class="summary-card__label">Receitas</p>
+          <p class="summary-card__value">
+            {{ s.totalIncome | currency:'BRL':'symbol':'1.2-2' }}
+          </p>
+        </article>
+
+        <article class="summary-card summary-card--expense">
+          <p class="summary-card__label">Despesas</p>
+          <p class="summary-card__value">
+            {{ s.totalExpenses | currency:'BRL':'symbol':'1.2-2' }}
+          </p>
+        </article>
+
+        <article
+          class="summary-card"
+          [class.summary-card--positive]="isPositiveBalance()"
+          [class.summary-card--negative]="!isPositiveBalance()"
+        >
+          <p class="summary-card__label">Saldo</p>
+          <p class="summary-card__value">
+            {{ s.balance | currency:'BRL':'symbol':'1.2-2' }}
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="bills-heading" class="home__section">
+      <h2 id="bills-heading" class="home__section-title">Próximas contas</h2>
+
+      @if (s.upcomingBills.length === 0) {
+        <p class="home__empty">Nenhuma conta a vencer este mês.</p>
+      } @else {
+        <ul class="bill-list" role="list">
+          @for (bill of s.upcomingBills; track bill.id) {
+            <li class="bill-item">
+              <span class="bill-item__description">{{ bill.description }}</span>
+              <span class="bill-item__day">Dia {{ bill.dayOfMonth }}</span>
+              <span class="bill-item__amount">
+                {{ bill.amount | currency:'BRL':'symbol':'1.2-2' }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section aria-labelledby="recent-heading" class="home__section">
+      <h2 id="recent-heading" class="home__section-title">Últimos lançamentos</h2>
+
+      @if (s.recentTransactions.length === 0) {
+        <p class="home__empty">Nenhum lançamento registrado este mês.</p>
+      } @else {
+        <ul class="tx-list" role="list">
+          @for (tx of s.recentTransactions; track tx.id) {
+            <li class="tx-item">
+              <span
+                class="tx-item__dot"
+                [class.tx-item__dot--income]="tx.type === 'income'"
+                [class.tx-item__dot--expense]="tx.type === 'expense'"
+                aria-hidden="true"
+              ></span>
+              <span class="tx-item__info">
+                <span class="tx-item__description">{{ tx.description }}</span>
+                <span class="tx-item__category">{{ tx.categoryName }}</span>
+              </span>
+              <time class="tx-item__date" [attr.datetime]="tx.date">
+                {{ tx.date | date:'dd/MM' }}
+              </time>
+              <span
+                class="tx-item__amount"
+                [class.tx-item__amount--income]="tx.type === 'income'"
+                [class.tx-item__amount--expense]="tx.type === 'expense'"
+              >
+                {{ tx.type === 'income' ? '+' : '-' }}&nbsp;{{ tx.amount | currency:'BRL':'symbol':'1.2-2' }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>

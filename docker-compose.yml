@@ -37,9 +37,12 @@ services:
       ASPNETCORE_URLS: http://+:80
     ports:
       - "5000:80"
+    volumes:
+      - mpfinance_uploads:/app/wwwroot/uploads
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   mpfinance_db_data:
+  mpfinance_uploads:

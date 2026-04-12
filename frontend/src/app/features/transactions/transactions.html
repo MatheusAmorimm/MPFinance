@@ -1,0 +1,218 @@
+@if (toastMessage()) {
+  <div class="toast" [class.toast-success]="toastType() === 'success'" [class.toast-error]="toastType() === 'error'" role="alert" aria-live="assertive">
+    {{ toastMessage() }}
+  </div>
+}
+
+<div class="tx-page">
+  <h1 class="tx-page__title">Lançamentos</h1>
+
+  <!-- ─── Formulário de lançamento ─────────────────────── -->
+  <section aria-labelledby="form-heading" class="form-card">
+    <h2 id="form-heading" class="sr-only">Novo lançamento</h2>
+
+    <!-- Toggle de modo -->
+    <div class="mode-toggle" role="group" aria-label="Tipo de lançamento">
+      <button
+        type="button"
+        class="mode-btn"
+        [class.mode-btn--active]="activeMode() === 'income'"
+        (click)="setMode('income')"
+        [attr.aria-pressed]="activeMode() === 'income'"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false">
+          <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/>
+        </svg>
+        Receita
+      </button>
+      <button
+        type="button"
+        class="mode-btn"
+        [class.mode-btn--active]="activeMode() === 'expense'"
+        (click)="setMode('expense')"
+        [attr.aria-pressed]="activeMode() === 'expense'"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false">
+          <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/>
+        </svg>
+        Despesa
+      </button>
+      <button
+        type="button"
+        class="mode-btn"
+        [class.mode-btn--active]="activeMode() === 'goal'"
+        (click)="setMode('goal')"
+        [attr.aria-pressed]="activeMode() === 'goal'"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+        </svg>
+        Meta
+      </button>
+    </div>
+
+    <!-- Formulário -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="tx-form" aria-label="Formulário de lançamento">
+
+      @if (activeMode() === 'goal') {
+        <!-- Meta -->
+        <div class="form-group">
+          <label for="goalId">Meta <span class="required" aria-hidden="true">*</span></label>
+          <select id="goalId" formControlName="goalId" [class.input-error]="form.get('goalId')?.invalid && form.get('goalId')?.touched">
+            <option value="" disabled>Selecione uma meta</option>
+            @for (g of goals(); track g.id) {
+              <option [value]="g.id">
+                {{ g.title }} — {{ g.currentAmount | currency:'BRL':'symbol':'1.2-2' }} / {{ g.targetAmount | currency:'BRL':'symbol':'1.2-2' }}
+              </option>
+            }
+          </select>
+          @if (form.get('goalId')?.hasError('required') && form.get('goalId')?.touched) {
+            <span class="field-error" role="alert">Selecione uma meta.</span>
+          }
+          @if (goals().length === 0) {
+            <span class="field-error">Nenhuma meta cadastrada.</span>
+          }
+        </div>
+      } @else {
+        <!-- Categoria -->
+        <div class="form-group">
+          <label for="categoryId">Categoria <span class="required" aria-hidden="true">*</span></label>
+          <select id="categoryId" formControlName="categoryId" [class.input-error]="form.get('categoryId')?.invalid && form.get('categoryId')?.touched">
+            <option value="" disabled>Selecione uma categoria</option>
+            @for (c of activeCategories(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+          @if (form.get('categoryId')?.hasError('required') && form.get('categoryId')?.touched) {
+            <span class="field-error" role="alert">Selecione uma categoria.</span>
+          }
+        </div>
+      }
+
+      <div class="form-row">
+        <!-- Valor -->
+        <div class="form-group">
+          <label for="amount">Valor <span class="required" aria-hidden="true">*</span></label>
+          <input
+            id="amount"
+            type="number"
+            formControlName="amount"
+            placeholder="0,00"
+            min="0.01"
+            step="0.01"
+            [class.input-error]="form.get('amount')?.invalid && form.get('amount')?.touched"
+            aria-describedby="amount-error"
+          />
+          @if (form.get('amount')?.hasError('required') && form.get('amount')?.touched) {
+            <span id="amount-error" class="field-error" role="alert">Informe o valor.</span>
+          }
+          @if (form.get('amount')?.hasError('min') && form.get('amount')?.touched) {
+            <span id="amount-error" class="field-error" role="alert">O valor deve ser maior que zero.</span>
+          }
+        </div>
+
+        <!-- Data -->
+        <div class="form-group">
+          <label for="date">Data de Vencimento<span class="required" aria-hidden="true">*</span></label>
+          <input
+            id="date"
+            type="date"
+            formControlName="date"
+            [class.input-error]="form.get('date')?.invalid && form.get('date')?.touched"
+          />
+          @if (form.get('date')?.hasError('required') && form.get('date')?.touched) {
+            <span class="field-error" role="alert">Informe a data.</span>
+          }
+        </div>
+      </div>
+
+      <!-- Descrição -->
+      <div class="form-group">
+        <label for="description">Descrição</label>
+        <input
+          id="description"
+          type="text"
+          formControlName="description"
+          placeholder="Ex.: Aluguel de abril, Salário..."
+          maxlength="255"
+        />
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="submitting()">
+        @if (submitting()) { Registrando... } @else { + Registrar lançamento }
+      </button>
+    </form>
+  </section>
+
+  <!-- ─── Tabela de lançamentos ────────────────────────── -->
+  <section aria-labelledby="table-heading" class="table-section">
+
+    <!-- Navegação de mês -->
+    <div class="table-nav">
+      <button type="button" class="table-nav__btn" (click)="previousMonth()" aria-label="Mês anterior">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false">
+          <polyline points="15,18 9,12 15,6"/>
+        </svg>
+      </button>
+      <h2 id="table-heading" class="table-nav__label">{{ monthLabel() }}</h2>
+      <button type="button" class="table-nav__btn" (click)="nextMonth()" aria-label="Próximo mês">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false">
+          <polyline points="9,18 15,12 9,6"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Totais do mês -->
+    <div class="totals-bar" aria-label="Totais do mês">
+      <span class="totals-bar__item totals-bar__item--income">
+        Receitas: <strong>{{ totalIncome() | currency:'BRL':'symbol':'1.2-2' }}</strong>
+      </span>
+      <span class="totals-bar__sep" aria-hidden="true">·</span>
+      <span class="totals-bar__item totals-bar__item--expense">
+        Despesas: <strong>{{ totalExpenses() | currency:'BRL':'symbol':'1.2-2' }}</strong>
+      </span>
+      <span class="totals-bar__sep" aria-hidden="true">·</span>
+      <span class="totals-bar__item">
+        Saldo: <strong [class.positive]="totalIncome() >= totalExpenses()" [class.negative]="totalIncome() < totalExpenses()">
+          {{ (totalIncome() - totalExpenses()) | currency:'BRL':'symbol':'1.2-2' }}
+        </strong>
+      </span>
+    </div>
+
+    <!-- Tabela -->
+    @if (transactions().length === 0) {
+      <p class="table-empty">Nenhum lançamento em {{ monthLabel() }}.</p>
+    } @else {
+      <div class="table-wrapper" role="region" aria-label="Tabela de lançamentos" tabindex="0">
+        <table class="tx-table">
+          <thead>
+            <tr>
+              <th scope="col" class="col-type" aria-label="Tipo"></th>
+              <th scope="col" class="col-desc">Descrição</th>
+              <th scope="col" class="col-cat">Categoria</th>
+              <th scope="col" class="col-date">Data</th>
+              <th scope="col" class="col-amount">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of transactions(); track tx.id) {
+              <tr class="tx-row">
+                <td class="col-type" aria-label="{{ tx.type === 'income' ? 'Receita' : 'Despesa' }}">
+                  <span class="type-dot" [class.type-dot--income]="tx.type === 'income'" [class.type-dot--expense]="tx.type === 'expense'" aria-hidden="true"></span>
+                </td>
+                <td class="col-desc">{{ tx.description || '—' }}</td>
+                <td class="col-cat">{{ tx.categoryName }}</td>
+                <td class="col-date">
+                  <time [attr.datetime]="tx.date">{{ tx.date | date:'dd/MM/yyyy' }}</time>
+                </td>
+                <td class="col-amount" [class.amount--income]="tx.type === 'income'" [class.amount--expense]="tx.type === 'expense'">
+                  {{ tx.type === 'income' ? '+' : '-' }}&nbsp;{{ tx.amount | currency:'BRL':'symbol':'1.2-2' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

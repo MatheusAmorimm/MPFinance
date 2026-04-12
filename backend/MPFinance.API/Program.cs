@@ -2,6 +2,8 @@ using MPFinance.Infrastructure.Context;
 using MPFinance.Infrastructure.Repositories;
 using MPFinance.Infrastructure.Services;
 using MPFinance.Domain.Interfaces;
+using MPFinance.Domain.Entities;
+using MPFinance.Domain.Enums;
 using MPFinance.Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,7 +16,7 @@ Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
 var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")!);
 
-// 1. Configuração do DbContext (Usando o Singleton internamente na classe)
+// 1. Configuração do DbContext
 builder.Services.AddDbContext<MPFinanceDbContext>();
 
 // 2. Registro dos Repositórios (Scoped - uma instância por request HTTP)
@@ -22,6 +24,7 @@ builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IGoalRepository, GoalRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IFixedTransactionRepository, FixedTransactionRepository>();
 
 // 3. Registro do Facade (Pattern Estrutural)
 builder.Services.AddScoped<FinancialFacade>();
@@ -31,7 +34,7 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(AppDomain.
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); // Essencial para testarmos o MVP
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddAuthentication(x =>
 {
@@ -40,7 +43,7 @@ builder.Services.AddAuthentication(x =>
 })
 .AddJwtBearer(x =>
 {
-    x.RequireHttpsMetadata = false; // Setar para true em produção
+    x.RequireHttpsMetadata = false;
     x.SaveToken = true;
     x.TokenValidationParameters = new TokenValidationParameters
     {
@@ -52,12 +55,15 @@ builder.Services.AddAuthentication(x =>
 });
 
 builder.Services.AddScoped<TokenService>();
-
 builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
 builder.Services.AddScoped<IEmailVerificationRepository, EmailVerificationRepository>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
 var app = builder.Build();
+
+// Ensure wwwroot/uploads/goals directory exists
+var uploadsPath = Path.Combine(app.Environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "goals");
+Directory.CreateDirectory(uploadsPath);
 
 using (var scope = app.Services.CreateScope())
 {
@@ -65,10 +71,9 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<MPFinanceDbContext>();
-        // Tenta aplicar qualquer migration pendente no banco de dados. 
-        // Se o banco não existir, ele cria.
         context.Database.Migrate();
         Console.WriteLine("Banco de dados atualizado com sucesso!");
+        await SeedCategoriesAsync(context);
     }
     catch (Exception ex)
     {
@@ -76,15 +81,58 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.UseStaticFiles();
 app.UseSwagger();
-app.UseSwaggerUI(c => {
+app.UseSwaggerUI(c =>
+{
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "MPFinance API V1");
     c.RoutePrefix = "swagger";
 });
 
-//app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// ─── Seed inicial de categorias ───────────────────────────────────────────────
+static async Task SeedCategoriesAsync(MPFinanceDbContext context)
+{
+    if (await context.Categories.AnyAsync()) return;
+
+    // ── Receitas (ordem alfabética) ───────────────────────────────────────────
+    await context.Categories.AddRangeAsync(
+        new Category("Bolsa de Estudos",          TransactionType.Income),
+        new Category("Cashback",                  TransactionType.Income),
+        new Category("Freelance & Projetos",      TransactionType.Income),
+        new Category("Mesada & Ajuda Familiar",   TransactionType.Income),
+        new Category("Pix de Presente",           TransactionType.Income),
+        new Category("Pró-labore / PJ",           TransactionType.Income),
+        new Category("Reembolso & Restituição",   TransactionType.Income),
+        new Category("Rendimentos",               TransactionType.Income),
+        new Category("Salário",                   TransactionType.Income),
+        new Category("Vendas (Enjoei / OLX)",     TransactionType.Income),
+
+        // ── Despesas (ordem alfabética) ───────────────────────────────────────
+        new Category("Aluguel & Moradia",         TransactionType.Expense),
+        new Category("Contas de Casa",            TransactionType.Expense),
+        new Category("Cursos & Certificações",    TransactionType.Expense),
+        new Category("Delivery & Restaurantes",   TransactionType.Expense),
+        new Category("Educação & Faculdade",      TransactionType.Expense),
+        new Category("Empréstimo & Parcelas",     TransactionType.Expense),
+        new Category("Games & Apps",              TransactionType.Expense),
+        new Category("Hobby & Esportes",          TransactionType.Expense),
+        new Category("Internet & Celular",        TransactionType.Expense),
+        new Category("Investimentos & Metas",     TransactionType.Expense),
+        new Category("Rolês & Festas",            TransactionType.Expense),
+        new Category("Roupas & Acessórios",       TransactionType.Expense),
+        new Category("Saúde & Farmácia",          TransactionType.Expense),
+        new Category("Streaming & Assinaturas",   TransactionType.Expense),
+        new Category("Supermercado",              TransactionType.Expense),
+        new Category("Transporte Público",        TransactionType.Expense),
+        new Category("Uber & Transporte por App", TransactionType.Expense)
+    );
+
+    await context.SaveChangesAsync();
+    Console.WriteLine("Categorias padrão criadas com sucesso!");
+}

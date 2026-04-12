@@ -16,6 +16,8 @@ public class UserMap : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash).IsRequired();
         builder.Property(u => u.IsVerified).HasDefaultValue(false);
         builder.Property(u => u.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+        builder.Property(u => u.EmailChangedAt).IsRequired(false);
+        builder.Property(u => u.PendingEmail).HasMaxLength(150).IsRequired(false);
 
         // Relacionamentos 1:N conforme a imagem
         builder.HasMany<Transaction>()

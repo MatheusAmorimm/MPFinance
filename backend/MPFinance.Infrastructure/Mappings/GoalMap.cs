@@ -16,5 +16,6 @@ public class GoalMap : IEntityTypeConfiguration<Goal>
         builder.Property(g => g.CurrentAmount).HasPrecision(18, 2).HasDefaultValue(0m);
         builder.Property(g => g.Deadline).IsRequired();
         builder.Property(g => g.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+        builder.Property(g => g.CoverImageUrl).HasMaxLength(500).IsRequired(false);
     }
 }

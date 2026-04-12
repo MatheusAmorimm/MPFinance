@@ -9,6 +9,7 @@ public class Goal
     public decimal CurrentAmount { get; private set; }
     public DateTime Deadline { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public string? CoverImageUrl { get; private set; }
 
     public Goal(Guid userId, string title, decimal targetAmount, DateTime deadline)
     {
@@ -22,4 +23,13 @@ public class Goal
     }
 
     public void Deposit(decimal value) => CurrentAmount += value;
+
+    public void UpdateDetails(string title, decimal targetAmount, DateTime deadline)
+    {
+        Title = title;
+        TargetAmount = targetAmount;
+        Deadline = deadline;
+    }
+
+    public void SetCoverImage(string url) => CoverImageUrl = url;
 }

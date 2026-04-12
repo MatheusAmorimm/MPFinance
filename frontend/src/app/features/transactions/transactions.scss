@@ -1,0 +1,343 @@
+$amarelo-limao:  #D9F99D;
+$preto-fosco:    #18181B;
+$violeta-escuro: #4C1D95;
+$perola:         #FFFBEB;
+$cinza-card:     #27272A;
+$cinza-input:    #1C1C1F;
+$cinza-borda:    #3F3F46;
+$cinza-texto:    #A1A1AA;
+$vermelho:       #F87171;
+$verde:          #4ADE80;
+
+/* ─── Layout ─────────────────────────────────── */
+
+.tx-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+}
+
+.tx-page__title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: $perola;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    padding-left: 0.875rem;
+    border-left: 4px solid $violeta-escuro;
+}
+
+/* ─── Card do formulário ─────────────────────── */
+
+.form-card {
+    background: $cinza-card;
+    border: 1px solid $violeta-escuro;
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+    box-shadow:
+        0 0 40px rgba($violeta-escuro, 0.2),
+        0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Toggle de modo ─────────────────────────── */
+
+.mode-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    background: $preto-fosco;
+    padding: 0.375rem;
+    border-radius: 0.875rem;
+    width: fit-content;
+}
+
+.mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.625rem;
+    border: none;
+    background: none;
+    color: $cinza-texto;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+
+    &:hover:not(.mode-btn--active) {
+        color: $perola;
+        background-color: rgba($cinza-borda, 0.5);
+    }
+
+    &:focus-visible {
+        outline: 2px solid $amarelo-limao;
+        outline-offset: 2px;
+    }
+}
+
+.mode-btn--active {
+    background: $cinza-card;
+    color: $amarelo-limao;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ─── Formulário ─────────────────────────────── */
+
+.tx-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    @media (max-width: 520px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+
+    label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: $perola;
+    }
+
+    input[type='text'],
+    input[type='number'],
+    input[type='date'],
+    select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: $cinza-input;
+        border: 1px solid $cinza-borda;
+        border-radius: 0.75rem;
+        color: $perola;
+        font-family: 'Sora', sans-serif;
+        font-size: 0.9rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        appearance: none;
+
+        &::placeholder { color: #52525B; }
+
+        &:focus {
+            outline: none;
+            border-color: $amarelo-limao;
+            box-shadow: 0 0 0 2px rgba($amarelo-limao, 0.15);
+        }
+
+        &.input-error {
+            border-color: $vermelho;
+            box-shadow: 0 0 0 2px rgba($vermelho, 0.15);
+        }
+    }
+
+    // Seta customizada para select
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A1A1AA' stroke-width='2.5'%3E%3Cpolyline points='6,9 12,15 18,9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 2.5rem;
+        cursor: pointer;
+
+        option { background: $cinza-card; }
+    }
+
+    input[type='date']::-webkit-calendar-picker-indicator {
+        filter: invert(0.7);
+        cursor: pointer;
+    }
+}
+
+/* ─── Seção da tabela ────────────────────────── */
+
+.table-section {
+    margin-top: 0.5rem;
+}
+
+/* ─── Navegação de mês ───────────────────────── */
+
+.table-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.table-nav__label {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $perola;
+    flex: 1;
+    text-align: center;
+}
+
+.table-nav__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 0.625rem;
+    border: 1px solid $cinza-borda;
+    background: $cinza-card;
+    color: $cinza-texto;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+
+    &:hover {
+        border-color: $amarelo-limao;
+        color: $amarelo-limao;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $amarelo-limao;
+        outline-offset: 2px;
+    }
+}
+
+/* ─── Barra de totais ────────────────────────── */
+
+.totals-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 1.25rem;
+    background: $cinza-card;
+    border: 1px solid $cinza-borda;
+    border-radius: 0.875rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+}
+
+.totals-bar__item {
+    color: $cinza-texto;
+    font-weight: 500;
+
+    strong { font-weight: 800; color: $perola; }
+
+    &.totals-bar__item--income strong { color: $amarelo-limao; }
+    &.totals-bar__item--expense strong { color: $vermelho; }
+}
+
+.totals-bar__sep {
+    color: $cinza-borda;
+}
+
+.positive { color: $verde !important; }
+.negative { color: $vermelho !important; }
+
+/* ─── Tabela ─────────────────────────────────── */
+
+.table-empty {
+    padding: 2rem;
+    text-align: center;
+    color: $cinza-texto;
+    font-size: 0.875rem;
+    border: 1px dashed $cinza-borda;
+    border-radius: 0.875rem;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 0.875rem;
+    border: 1px solid $violeta-escuro;
+    box-shadow: 0 0 24px rgba($violeta-escuro, 0.12);
+
+    &:focus-visible {
+        outline: 2px solid $amarelo-limao;
+        outline-offset: 2px;
+    }
+}
+
+.tx-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+
+    thead {
+        background: $cinza-card;
+        border-bottom: 1px solid $cinza-borda;
+    }
+
+    th {
+        padding: 0.875rem 1rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: $cinza-texto;
+        white-space: nowrap;
+    }
+
+    tbody tr {
+        background: $preto-fosco;
+        border-bottom: 1px solid rgba($cinza-borda, 0.5);
+        transition: background-color 0.15s;
+
+        &:last-child { border-bottom: none; }
+        &:hover { background-color: rgba($cinza-card, 0.7); }
+    }
+
+    td {
+        padding: 0.875rem 1rem;
+        color: $perola;
+        vertical-align: middle;
+    }
+}
+
+/* ─── Colunas ────────────────────────────────── */
+
+.col-type   { width: 40px; }
+.col-desc   { min-width: 160px; }
+.col-cat    { min-width: 140px; color: $cinza-texto; }
+.col-date   { white-space: nowrap; color: $cinza-texto; min-width: 110px; }
+.col-amount { text-align: right; font-weight: 700; white-space: nowrap; }
+
+.type-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+
+    &.type-dot--income  { background: $amarelo-limao; }
+    &.type-dot--expense { background: $vermelho; }
+}
+
+.amount--income  { color: $amarelo-limao; }
+.amount--expense { color: $vermelho; }
+
+/* ─── Acessibilidade ─────────────────────────── */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.required { color: $amarelo-limao; margin-left: 2px; }
+.field-error {
+    display: block;
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    color: $vermelho;
+    font-weight: 500;
+}

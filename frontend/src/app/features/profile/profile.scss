@@ -1,0 +1,387 @@
+$amarelo-limao:  #D9F99D;
+$preto-fosco:    #18181B;
+$violeta-escuro: #4C1D95;
+$perola:         #FFFBEB;
+$cinza-card:     #27272A;
+$cinza-input:    #1C1C1F;
+$cinza-borda:    #3F3F46;
+$cinza-texto:    #A1A1AA;
+$vermelho:       #F87171;
+$verde:          #4ADE80;
+
+/* ─── Layout ─────────────────────────────────────── */
+
+.profile-page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 5rem;
+}
+
+.profile-page__title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: $perola;
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem;
+    padding-left: 0.875rem;
+    border-left: 4px solid $violeta-escuro;
+}
+
+/* ─── Loading ────────────────────────────────────── */
+
+.profile-page__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30vh;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba($cinza-borda, 0.4);
+    border-top-color: $amarelo-limao;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Info card ──────────────────────────────────── */
+
+.info-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem 1.75rem;
+    background: $cinza-card;
+    border: 1px solid $violeta-escuro;
+    border-radius: 1.25rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 0 32px rgba($violeta-escuro, 0.15);
+}
+
+.info-card__avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $violeta-escuro 0%, lighten($violeta-escuro, 12%) 100%);
+    color: $amarelo-limao;
+    font-size: 1.375rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+}
+
+.info-card__details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.info-card__name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $perola;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.info-card__email {
+    font-size: 0.875rem;
+    color: $cinza-texto;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.info-card__since {
+    font-size: 0.75rem;
+    color: rgba($cinza-texto, 0.7);
+    margin: 0.1rem 0 0;
+    text-transform: capitalize;
+}
+
+/* ─── Security section ───────────────────────────── */
+
+.security-section__title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: $cinza-texto;
+    margin-bottom: 0.75rem;
+}
+
+/* ─── Security card ──────────────────────────────── */
+
+.security-card {
+    background: $cinza-card;
+    border: 1px solid $cinza-borda;
+    border-radius: 1rem;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+
+    &:focus-within {
+        border-color: rgba($amarelo-limao, 0.3);
+    }
+}
+
+.security-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    gap: 1rem;
+}
+
+.security-card__info {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $perola;
+
+    svg { color: $cinza-texto; flex-shrink: 0; }
+}
+
+.security-card__hint {
+    padding: 0 1.25rem 0.75rem;
+    font-size: 0.75rem;
+    color: $cinza-texto;
+    margin: 0;
+    margin-top: -0.375rem;
+}
+
+/* ─── Step body ──────────────────────────────────── */
+
+.step-body {
+    padding: 0 1.25rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid rgba($cinza-borda, 0.5);
+    padding-top: 1rem;
+}
+
+.step-hint {
+    font-size: 0.85rem;
+    color: $cinza-texto;
+    margin: 0 0 1rem;
+    line-height: 1.5;
+
+    strong { color: $perola; }
+}
+
+/* ─── OTP single input ───────────────────────────── */
+
+.otp-field {
+    margin-bottom: 1rem;
+}
+
+.otp-single {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: $cinza-input;
+    border: 1px solid $cinza-borda;
+    border-radius: 0.75rem;
+    color: $amarelo-limao;
+    font-family: 'Sora', monospace;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.5rem;
+    text-align: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &::placeholder { color: #3F3F46; letter-spacing: 0.3rem; font-size: 1.25rem; }
+
+    &:focus {
+        outline: none;
+        border-color: $amarelo-limao;
+        box-shadow: 0 0 0 2px rgba($amarelo-limao, 0.15);
+    }
+
+    &.otp-error {
+        border-color: $vermelho;
+        box-shadow: 0 0 0 2px rgba($vermelho, 0.15);
+    }
+}
+
+/* ─── Step actions ───────────────────────────────── */
+
+.step-actions {
+    display: flex;
+    gap: 0.625rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+/* ─── Form group (inline) ────────────────────────── */
+
+.form-group {
+    margin-bottom: 1rem;
+
+    label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+        color: $perola;
+    }
+
+    input[type='password'],
+    input[type='email'],
+    input[type='text'] {
+        width: 100%;
+        padding: 0.65rem 0.875rem;
+        background: $cinza-input;
+        border: 1px solid $cinza-borda;
+        border-radius: 0.625rem;
+        color: $perola;
+        font-family: 'Sora', sans-serif;
+        font-size: 0.875rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+
+        &::placeholder { color: #52525B; }
+        &:focus {
+            outline: none;
+            border-color: $amarelo-limao;
+            box-shadow: 0 0 0 2px rgba($amarelo-limao, 0.15);
+        }
+        &.input-error {
+            border-color: $vermelho;
+            box-shadow: 0 0 0 2px rgba($vermelho, 0.15);
+        }
+    }
+}
+
+/* ─── Buttons ────────────────────────────────────── */
+
+.btn-outline {
+    padding: 0.375rem 0.875rem;
+    border: 1px solid $cinza-borda;
+    border-radius: 0.5rem;
+    background: none;
+    color: $cinza-texto;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+
+    &:hover { color: $amarelo-limao; border-color: $amarelo-limao; }
+    &:focus-visible { outline: 2px solid $amarelo-limao; outline-offset: 2px; }
+}
+
+.btn-primary-sm {
+    padding: 0.4rem 1rem;
+    background: $amarelo-limao;
+    color: $preto-fosco;
+    border: none;
+    border-radius: 0.5rem;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+
+    &:not(:disabled):hover { opacity: 0.88; }
+    &:disabled { opacity: 0.45; cursor: not-allowed; }
+    &:focus-visible { outline: 2px solid $amarelo-limao; outline-offset: 2px; }
+}
+
+.btn-ghost-sm {
+    padding: 0.4rem 0.75rem;
+    background: none;
+    border: none;
+    color: $cinza-texto;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover { color: $perola; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+    &:focus-visible { outline: 2px solid $amarelo-limao; outline-offset: 2px; border-radius: 0.375rem; }
+}
+
+/* ─── Badges ─────────────────────────────────────── */
+
+.badge-success {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $verde;
+    background: rgba($verde, 0.1);
+    border: 1px solid rgba($verde, 0.3);
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+}
+
+.badge-lock {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $cinza-texto;
+    background: rgba($cinza-borda, 0.4);
+    border: 1px solid $cinza-borda;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    cursor: default;
+}
+
+/* ─── Danger zone ────────────────────────────────── */
+
+.danger-section {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba($cinza-borda, 0.5);
+    display: flex;
+    justify-content: flex-start;
+}
+
+.btn-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: none;
+    border: 1px solid rgba($vermelho, 0.4);
+    border-radius: 0.625rem;
+    color: $vermelho;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    &:hover {
+        background: rgba($vermelho, 0.08);
+        border-color: $vermelho;
+    }
+
+    &:focus-visible { outline: 2px solid $vermelho; outline-offset: 2px; }
+}
+
+/* ─── Misc ───────────────────────────────────────── */
+
+.required { color: $amarelo-limao; margin-left: 2px; }
+
+.field-error {
+    display: block;
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    color: $vermelho;
+    font-weight: 500;
+}

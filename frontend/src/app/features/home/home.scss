@@ -1,0 +1,297 @@
+$amarelo-limao:  #D9F99D;
+$preto-fosco:    #18181B;
+$violeta-escuro: #4C1D95;
+$perola:         #FFFBEB;
+$cinza-card:     #27272A;
+$cinza-borda:    #3F3F46;
+$cinza-texto:    #A1A1AA;
+$vermelho:       #F87171;
+$verde:          #4ADE80;
+
+/* ─── Layout ─────────────────────────────────── */
+
+.home {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+}
+
+/* ─── Loading / Error ────────────────────────── */
+
+.home__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba($cinza-borda, 0.4);
+    border-top-color: $amarelo-limao;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.home__error {
+    padding: 1.25rem 1.5rem;
+    border: 1px solid $vermelho;
+    border-radius: 0.75rem;
+    background: rgba($vermelho, 0.08);
+    color: $vermelho;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-top: 2rem;
+}
+
+/* ─── Header ─────────────────────────────────── */
+
+.home__header {
+    margin-bottom: 2rem;
+}
+
+.home__greeting {
+    font-size: 0.875rem;
+    color: $cinza-texto;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.home__month {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: $perola;
+    letter-spacing: -0.02em;
+}
+
+/* ─── Section ────────────────────────────────── */
+
+.home__section {
+    margin-bottom: 2.5rem;
+}
+
+.home__section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $perola;
+    margin-bottom: 1rem;
+    letter-spacing: 0.01em;
+    padding-left: 0.75rem;
+    border-left: 3px solid $violeta-escuro;
+}
+
+.home__empty {
+    font-size: 0.875rem;
+    color: $cinza-texto;
+    padding: 1.25rem;
+    border: 1px dashed $cinza-borda;
+    border-radius: 0.75rem;
+    text-align: center;
+}
+
+/* ─── Summary Cards ──────────────────────────── */
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.summary-card {
+    padding: 1.25rem 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid $violeta-escuro;
+    background: $cinza-card;
+    box-shadow: 0 0 24px rgba($violeta-escuro, 0.15);
+}
+
+.summary-card__label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.5rem;
+    color: $cinza-texto;
+}
+
+.summary-card__value {
+    font-size: 1.375rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: $perola;
+}
+
+.summary-card--income {
+    border-color: rgba($amarelo-limao, 0.25);
+
+    .summary-card__label { color: $amarelo-limao; }
+    .summary-card__value { color: $amarelo-limao; }
+}
+
+.summary-card--expense {
+    border-color: rgba($vermelho, 0.25);
+
+    .summary-card__label { color: $vermelho; }
+    .summary-card__value { color: $vermelho; }
+}
+
+.summary-card--positive {
+    border-color: rgba($verde, 0.25);
+
+    .summary-card__label { color: $verde; }
+    .summary-card__value { color: $verde; }
+}
+
+.summary-card--negative {
+    border-color: rgba($vermelho, 0.25);
+
+    .summary-card__label { color: $vermelho; }
+    .summary-card__value { color: $vermelho; }
+}
+
+/* ─── Bill List ──────────────────────────────── */
+
+.bill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.bill-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: $cinza-card;
+    border: 1px solid $cinza-borda;
+    border-radius: 0.75rem;
+    transition: border-color 0.2s;
+
+    &:hover {
+        border-color: rgba($amarelo-limao, 0.3);
+    }
+}
+
+.bill-item__description {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $perola;
+}
+
+.bill-item__day {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: $cinza-texto;
+    white-space: nowrap;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid $cinza-borda;
+    border-radius: 0.375rem;
+}
+
+.bill-item__amount {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: $vermelho;
+    white-space: nowrap;
+}
+
+/* ─── Transaction List ───────────────────────── */
+
+.tx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tx-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: $cinza-card;
+    border: 1px solid $cinza-borda;
+    border-radius: 0.75rem;
+    transition: border-color 0.2s;
+
+    &:hover {
+        border-color: $cinza-borda;
+        background: lighten($cinza-card, 2%);
+    }
+}
+
+.tx-item__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.tx-item__dot--income  { background: $amarelo-limao; }
+    &.tx-item__dot--expense { background: $vermelho; }
+}
+
+.tx-item__info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.tx-item__description {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $perola;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tx-item__category {
+    font-size: 0.75rem;
+    color: $cinza-texto;
+    margin-top: 0.125rem;
+}
+
+.tx-item__date {
+    font-size: 0.8rem;
+    color: $cinza-texto;
+    white-space: nowrap;
+}
+
+.tx-item__amount {
+    font-size: 0.9rem;
+    font-weight: 700;
+    white-space: nowrap;
+
+    &.tx-item__amount--income  { color: $amarelo-limao; }
+    &.tx-item__amount--expense { color: $vermelho; }
+}
+
+/* ─── Accessibility ──────────────────────────── */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
