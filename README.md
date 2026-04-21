@@ -266,8 +266,8 @@ O Docker Compose garante que:
 
 | Serviço | Porta exposta | Descrição |
 |---|---|---|
-| `mpfinance_db` | 3306 | MySQL 8.0 |
-| `mpfinance_api` | 5000 | ASP.NET Core API |
+| `mpfinance_db` | xxxx | MySQL 8.0 |
+| `mpfinance_api` | xxxx | ASP.NET Core API |
 
 Para rebuild após alterações no código:
 
