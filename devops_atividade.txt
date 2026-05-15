@@ -1,0 +1,214 @@
+ATIVIDADE PRÁTICA: DEVOPS
+Disciplina: DevOps / Engenharia de Software
+Projeto: MPFinance — Sistema de Controle Financeiro Pessoal
+Aluno: Matheus Amorim
+========================================================
+
+
+1. DESAFIO
+----------
+Facilitar a integração contínua e a entrega rápida de novas funcionalidades
+no MPFinance sem interromper o uso do sistema em produção. O projeto envolve
+um backend em ASP.NET Core (.NET 10), um banco de dados MySQL, e um frontend
+em Angular 17+, todos precisando ser testados, integrados e publicados de
+forma confiável a cada nova alteração no código.
+
+
+2. SOLUÇÃO IMPLEMENTADA
+-----------------------
+Foi adotada uma abordagem de DevOps completa, cobrindo conteinerização,
+automação de build, testes, deploy e monitoramento de saúde da aplicação.
+Cada camada da solução é descrita abaixo.
+
+
+2.1 CONTEINERIZAÇÃO COM DOCKER
+-------------------------------
+O backend (API) e o banco de dados (MySQL 8.0) foram conteinerizados com
+Docker, garantindo que o ambiente de execução seja idêntico em qualquer
+máquina — local ou produção.
+
+O arquivo docker-compose.yml define dois serviços:
+  - mpfinance_db: MySQL 8.0 com volume persistente e health check automático.
+    O serviço só considera o banco saudável após o mysqladmin responder,
+    evitando que a API suba antes do banco estar pronto.
+  - mpfinance_api: build multi-estágio (SDK → publish → runtime) que gera
+    uma imagem mínima com apenas o necessário para execução em produção.
+
+O frontend Angular é servido via PM2 (gerenciador de processos Node.js),
+que mantém o processo ativo e o reinicia automaticamente em caso de falha.
+
+Variáveis sensíveis (senhas, chaves JWT, chave da API de IA, credenciais
+de e-mail) são gerenciadas exclusivamente via arquivo .env, que está no
+.gitignore e nunca é versionado.
+
+
+2.2 PIPELINE DE CI/CD COM GITHUB ACTIONS
+-----------------------------------------
+O pipeline está definido em .github/workflows/deploy.yml e é acionado
+automaticamente a cada push na branch main.
+
+O pipeline é dividido em dois jobs independentes:
+
+JOB 1 — BUILD CHECK (CI):
+  Executa no ambiente GitHub Actions (Ubuntu) e valida que o código compila
+  sem erros antes de qualquer deploy.
+
+  Etapas:
+    a) Checkout do código-fonte
+    b) Configuração do .NET 10
+    c) dotnet build do projeto MPFinance.API em modo Release
+       → Se houver erro de compilação no backend, o pipeline para aqui.
+    d) Configuração do Node.js 20
+    e) yarn install --frozen-lockfile (instala dependências exatas do lockfile)
+    f) yarn build --configuration production (build Angular otimizado)
+       → Se houver erro no frontend, o pipeline para aqui.
+
+  Objetivo: garantir que nenhum código quebrado chegue ao servidor de produção.
+
+JOB 2 — DEPLOY (CD):
+  Só é executado se o Job 1 for concluído com sucesso.
+  Acessa a VPS via SSH (autenticação por senha, configurada como secret do
+  repositório no GitHub) e executa os seguintes comandos remotamente:
+
+    a) cd <caminho do projeto>
+    b) git pull origin main
+       → Baixa as alterações mais recentes do repositório.
+    c) docker compose up -d --build
+       → Reconstrói as imagens alteradas e reinicia os containers sem
+         derrubar os que não foram modificados (zero-downtime para o banco).
+    d) cd frontend && yarn install --frozen-lockfile
+       → Atualiza dependências do frontend se necessário.
+    e) yarn build --configuration production
+       → Gera os arquivos estáticos otimizados do Angular.
+    f) pm2 restart mpfinance-frontend
+       → Reinicia o processo que serve o frontend, carregando o novo build.
+
+JOB 3 — HEALTH CHECK (pós-deploy):
+  Após o deploy, o pipeline aguarda 15 segundos para a API inicializar e
+  realiza uma verificação de saúde automática:
+
+    curl -s http://localhost:5000/swagger/index.html
+
+  Se a API retornar HTTP 200, o deploy é marcado como bem-sucedido.
+  Se retornar qualquer outro código, o pipeline falha com sinal de alerta,
+  permitindo que a equipe identifique o problema imediatamente.
+
+
+2.3 MIGRATIONS AUTOMÁTICAS DO BANCO DE DADOS
+---------------------------------------------
+O Entity Framework Core aplica as migrations automaticamente na inicialização
+da aplicação. Isso garante que o schema do banco de dados esteja sempre
+sincronizado com o código, sem necessidade de intervenção manual no servidor.
+
+Além disso, o seed de categorias foi implementado de forma idempotente:
+  - Remove categorias que não estão mais na lista canônica (se não tiverem
+    transações vinculadas, para proteger dados do usuário).
+  - Insere categorias novas que ainda não existem no banco.
+  - Não duplica categorias já existentes.
+
+Isso permite que mudanças no conjunto de categorias sejam entregues
+automaticamente a todos os usuários no próximo deploy, sem scripts SQL manuais.
+
+
+2.4 GESTÃO DE SECRETS
+----------------------
+Credenciais e chaves de API são armazenadas como Secrets do repositório
+no GitHub (Settings → Secrets and variables → Actions) e nunca expostas
+no código-fonte. O pipeline as injeta como variáveis de ambiente apenas
+durante a execução.
+
+Secrets configurados:
+  - VPS_HOST       → IP do servidor de produção
+  - VPS_USER       → Usuário SSH
+  - VPS_PASSWORD   → Senha SSH
+  - VPS_PORT       → Porta SSH
+  - VPS_DEPLOY_PATH → Caminho do projeto na VPS
+
+
+3. FLUXO COMPLETO DE ENTREGA
+-----------------------------
+
+  Desenvolvedor faz git push origin main
+              ↓
+  GitHub Actions dispara automaticamente
+              ↓
+  [CI] Build do backend (.NET) + Build do frontend (Angular)
+              ↓ (falha aqui se houver erro de compilação)
+  [CD] SSH na VPS → git pull → docker compose up --build
+       → yarn build → pm2 restart
+              ↓
+  [Health Check] curl na API → verifica HTTP 200
+              ↓
+  ✅ Deploy concluído / ❌ Alerta de falha no GitHub
+
+
+4. VANTAGENS OBSERVADAS
+------------------------
+  • Entrega contínua: novas funcionalidades chegam ao usuário final em
+    menos de 3 minutos após o push, sem nenhuma ação manual.
+
+  • Prevenção de regressões: o build check impede que código com erros
+    de compilação seja publicado em produção.
+
+  • Ambiente reproduzível: Docker garante que "funciona na minha máquina"
+    seja igual a "funciona em produção".
+
+  • Zero intervenção manual no banco: migrations e seed automáticos eliminam
+    o risco de esquecimento de scripts SQL em deploys.
+
+  • Rastreabilidade: cada deploy fica registrado no GitHub Actions com logs
+    detalhados de cada etapa, facilitando auditoria e diagnóstico de problemas.
+
+  • Segurança: secrets nunca aparecem no código ou nos logs; o .env não é
+    versionado; a comunicação com a VPS é criptografada via SSH.
+
+  • Verificação de saúde automática: o health check pós-deploy detecta
+    falhas silenciosas que passariam despercebidas em um deploy manual.
+
+
+5. DESVANTAGENS E LIMITAÇÕES
+------------------------------
+  • Curva de aprendizado inicial: configurar GitHub Actions, Docker Compose,
+    PM2 e SSH keys exigiu estudo e testes antes de funcionar corretamente.
+
+  • Ausência de testes automatizados: o pipeline valida compilação, mas não
+    executa testes unitários ou de integração (o projeto ainda não possui
+    uma suíte de testes implementada). A qualidade funcional depende de
+    validação manual.
+
+  • Deploy único sem rollback automático: não há mecanismo automático de
+    reversão. Em caso de falha detectada pelo health check, é necessário
+    reverter manualmente com git revert + novo push.
+
+  • Frontend fora do Docker: o Angular é servido via PM2 e não via container,
+    o que torna o ambiente do frontend ligeiramente diferente entre dev e prod
+    (em dev usa proxy do Angular CLI; em prod usa PM2 + serve estático).
+
+  • Dependência de disponibilidade da VPS: o pipeline de deploy requer que
+    a VPS esteja acessível via SSH. Indisponibilidade do servidor bloqueia
+    o deploy mesmo que o código esteja correto.
+
+
+6. RESULTADO
+------------
+A equipe (projeto individual) passou a entregar novas versões do MPFinance
+de forma totalmente automatizada. Funcionalidades como o chatbot FinBot
+(integração com IA Groq/LLaMA), o sistema de metas com animação de celebração,
+a tela de lançamentos refatorada e as melhorias de categorias foram todas
+entregues em produção via pipeline, sem nenhum acesso manual ao servidor
+após a configuração inicial.
+
+O tempo entre um commit na branch main e a funcionalidade disponível em
+produção é inferior a 3 minutos, com verificação automática de saúde ao final.
+
+
+========================================================
+Tecnologias utilizadas no pipeline DevOps:
+  - GitHub Actions      (CI/CD)
+  - Docker + Docker Compose (conteinerização)
+  - PM2                 (processo do frontend em produção)
+  - SSH (appleboy/ssh-action) (deploy remoto)
+  - Entity Framework Core migrations (banco automático)
+  - DotNetEnv           (gestão de variáveis de ambiente)
+  - AlmaLinux (VPS)     (servidor de produção)
+========================================================

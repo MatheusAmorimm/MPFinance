@@ -38,6 +38,9 @@ builder.Services.AddScoped<IFixedTransactionRepository, FixedTransactionReposito
 // 3. Registro do Facade (Pattern Estrutural)
 builder.Services.AddScoped<FinancialFacade>();
 
+// Chat (Gemini)
+builder.Services.AddHttpClient<ChatService>();
+
 // 4. Registro do MediatR
 builder.Services.AddMediatR(typeof(FinancialFacade).Assembly);
 

@@ -62,3 +62,21 @@ jobs:
             cd ..
 
             pm2 restart mpfinance-frontend
+
+      - name: Health Check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            echo "Aguardando API inicializar..."
+            sleep 15
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/swagger/index.html)
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ API respondendo corretamente (HTTP $STATUS)"
+            else
+              echo "❌ API não respondeu como esperado (HTTP $STATUS)"
+              exit 1
+            fi

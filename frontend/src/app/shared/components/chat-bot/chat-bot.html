@@ -1,0 +1,106 @@
+<div class="chat-wrapper">
+
+  <!-- Botão flutuante -->
+  <button
+    class="chat-fab"
+    (click)="toggle()"
+    [attr.aria-label]="open() ? 'Fechar chat' : 'Abrir assistente FinBot'"
+    [attr.aria-expanded]="open()"
+  >
+    @if (open()) {
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" width="24" height="24" aria-hidden="true">
+        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    } @else {
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+        <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/>
+      </svg>
+    }
+  </button>
+
+  <!-- Painel do chat -->
+  @if (open()) {
+    <div class="chat-panel" role="dialog" aria-label="Assistente FinBot" aria-modal="true">
+
+      <!-- Header -->
+      <div class="chat-header">
+        <div class="chat-header__info">
+          <div class="chat-avatar" aria-hidden="true">🤖</div>
+          <div>
+            <p class="chat-header__name">FinBot</p>
+            <p class="chat-header__sub">Assistente MPFinance</p>
+          </div>
+        </div>
+        <button class="chat-header__close" (click)="toggle()" aria-label="Fechar chat">✕</button>
+      </div>
+
+      <!-- Tela de consentimento -->
+      @if (consentGiven() === null) {
+        <div class="chat-consent">
+          <div class="consent-icon" aria-hidden="true">🔒</div>
+          <h3 class="consent-title">Antes de começar</h3>
+          <p class="consent-desc">
+            Deseja compartilhar seus dados financeiros do mês atual para que o FinBot possa fazer análises personalizadas?
+          </p>
+          <div class="consent-actions">
+            <button class="consent-btn consent-btn--yes" (click)="giveConsent(true)">
+              Sim, compartilhar
+            </button>
+            <button class="consent-btn consent-btn--no" (click)="giveConsent(false)">
+              Não, obrigado
+            </button>
+          </div>
+          <p class="consent-note">Seus dados não são armazenados pela IA.</p>
+        </div>
+      } @else {
+        <!-- Lista de mensagens -->
+        <div class="chat-messages" #messageList role="log" aria-live="polite" aria-label="Mensagens do chat">
+          @for (msg of messages(); track $index) {
+            <div class="chat-msg" [class.chat-msg--user]="msg.role === 'user'" [class.chat-msg--bot]="msg.role === 'bot'">
+              @if (msg.role === 'bot') {
+                <span class="chat-msg__avatar" aria-hidden="true">🤖</span>
+              }
+              <div class="chat-msg__bubble">{{ msg.content }}</div>
+            </div>
+          }
+
+          @if (loading()) {
+            <div class="chat-msg chat-msg--bot" aria-label="FinBot está digitando">
+              <span class="chat-msg__avatar" aria-hidden="true">🤖</span>
+              <div class="chat-msg__bubble chat-msg__bubble--typing">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input-area">
+          <textarea
+            class="chat-input"
+            rows="1"
+            placeholder="Digite sua dúvida..."
+            [value]="inputText()"
+            (input)="inputText.set($any($event.target).value)"
+            (keydown)="onKeyDown($event)"
+            [disabled]="loading()"
+            aria-label="Mensagem para o FinBot"
+            maxlength="800"
+          ></textarea>
+          <button
+            class="chat-send"
+            (click)="send()"
+            [disabled]="loading() || !inputText().trim()"
+            aria-label="Enviar mensagem"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>
