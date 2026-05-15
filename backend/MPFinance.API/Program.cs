@@ -137,43 +137,69 @@ app.Run();
 // ─── Seed inicial de categorias ───────────────────────────────────────────────
 static async Task SeedCategoriesAsync(MPFinanceDbContext context)
 {
-    if (await context.Categories.AnyAsync()) return;
-
-    // ── Receitas (ordem alfabética) ───────────────────────────────────────────
-    await context.Categories.AddRangeAsync(
-        new Category("Bolsa de Estudos",          TransactionType.Income),
-        new Category("Cashback",                  TransactionType.Income),
-        new Category("Freelance & Projetos",      TransactionType.Income),
-        new Category("Mesada & Ajuda Familiar",   TransactionType.Income),
-        new Category("Pix de Presente",           TransactionType.Income),
-        new Category("Pró-labore / PJ",           TransactionType.Income),
-        new Category("Reembolso & Restituição",   TransactionType.Income),
-        new Category("Rendimentos",               TransactionType.Income),
-        new Category("Salário",                   TransactionType.Income),
-        new Category("Vendas (Enjoei / OLX)",     TransactionType.Income),
+    var canonical = new List<Category>
+    {
+        // ── Receitas (ordem alfabética) ───────────────────────────────────────
+        new("Bolsa de Estudos",          TransactionType.Income),
+        new("Cashback",                  TransactionType.Income),
+        new("Freelance & Projetos",      TransactionType.Income),
+        new("Mesada & Ajuda Familiar",   TransactionType.Income),
+        new("Pix de Presente",           TransactionType.Income),
+        new("Pró-labore / PJ",           TransactionType.Income),
+        new("Reembolso & Restituição",   TransactionType.Income),
+        new("Rendimentos",               TransactionType.Income),
+        new("Salário",                   TransactionType.Income),
+        new("Vendas (Enjoei / OLX)",     TransactionType.Income),
 
         // ── Despesas (ordem alfabética) ───────────────────────────────────────
-        new Category("Aluguel & Moradia",         TransactionType.Expense),
-        new Category("Condomínio",               TransactionType.Expense),
-        new Category("Conta de Água",            TransactionType.Expense),
-        new Category("Conta de Luz",             TransactionType.Expense),
-        new Category("Cursos & Certificações",   TransactionType.Expense),
-        new Category("Delivery & Restaurantes",  TransactionType.Expense),
-        new Category("Educação & Faculdade",     TransactionType.Expense),
-        new Category("Empréstimo & Parcelas",    TransactionType.Expense),
-        new Category("Games & Apps",             TransactionType.Expense),
-        new Category("Gás de Cozinha",           TransactionType.Expense),
-        new Category("Hobby & Esportes",         TransactionType.Expense),
-        new Category("Internet & Celular",       TransactionType.Expense),
-        new Category("Rolês & Festas",           TransactionType.Expense),
-        new Category("Roupas & Acessórios",       TransactionType.Expense),
-        new Category("Saúde & Farmácia",          TransactionType.Expense),
-        new Category("Streaming & Assinaturas",   TransactionType.Expense),
-        new Category("Supermercado",              TransactionType.Expense),
-        new Category("Transporte Público",        TransactionType.Expense),
-        new Category("Uber & Transporte por App", TransactionType.Expense)
-    );
+        new("Aluguel & Moradia",         TransactionType.Expense),
+        new("Condomínio",               TransactionType.Expense),
+        new("Conta de Água",            TransactionType.Expense),
+        new("Conta de Luz",             TransactionType.Expense),
+        new("Cursos & Certificações",   TransactionType.Expense),
+        new("Delivery & Restaurantes",  TransactionType.Expense),
+        new("Educação & Faculdade",     TransactionType.Expense),
+        new("Empréstimo & Parcelas",    TransactionType.Expense),
+        new("Games & Apps",             TransactionType.Expense),
+        new("Gás de Cozinha",           TransactionType.Expense),
+        new("Hobby & Esportes",         TransactionType.Expense),
+        new("Internet & Celular",       TransactionType.Expense),
+        new("Rolês & Festas",           TransactionType.Expense),
+        new("Roupas & Acessórios",       TransactionType.Expense),
+        new("Saúde & Farmácia",          TransactionType.Expense),
+        new("Streaming & Assinaturas",   TransactionType.Expense),
+        new("Supermercado",              TransactionType.Expense),
+        new("Transporte Público",        TransactionType.Expense),
+        new("Uber & Transporte por App", TransactionType.Expense),
+    };
 
-    await context.SaveChangesAsync();
-    Console.WriteLine("Categorias padrão criadas com sucesso!");
+    var canonicalNames = canonical.Select(c => c.Name).ToHashSet();
+
+    // Remove categorias fora da lista canônica que não possuem transações vinculadas
+    var usedCategoryIds = await context.Transactions
+        .Select(t => t.CategoryId)
+        .Distinct()
+        .ToListAsync();
+
+    var toRemove = await context.Categories
+        .Where(c => !canonicalNames.Contains(c.Name) && !usedCategoryIds.Contains(c.Id))
+        .ToListAsync();
+
+    if (toRemove.Count > 0)
+    {
+        context.Categories.RemoveRange(toRemove);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"{toRemove.Count} categoria(s) obsoleta(s) removida(s).");
+    }
+
+    // Insere categorias da lista canônica que ainda não existem
+    var existing = (await context.Categories.Select(c => c.Name).ToListAsync()).ToHashSet();
+    var toAdd = canonical.Where(c => !existing.Contains(c.Name)).ToList();
+
+    if (toAdd.Count > 0)
+    {
+        await context.Categories.AddRangeAsync(toAdd);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"{toAdd.Count} categoria(s) adicionada(s).");
+    }
 }
