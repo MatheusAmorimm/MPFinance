@@ -28,7 +28,7 @@
 
   <!-- Calendar dropdown -->
   @if (open()) {
-    <div class="dp-calendar" role="dialog" aria-label="Selecionar data" (click)="$event.stopPropagation()">
+    <div class="dp-calendar" [class.dp-calendar--up]="openUpward()" role="dialog" aria-label="Selecionar data" (click)="$event.stopPropagation()">
 
       <!-- Header -->
       <div class="dp-header">

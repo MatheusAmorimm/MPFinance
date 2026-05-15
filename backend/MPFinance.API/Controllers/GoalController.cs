@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MPFinance.Domain.Entities;
@@ -149,5 +150,14 @@ public class GoalController : ControllerBase
 }
 
 // ─── Request records ──────────────────────────────────────────────────────────
-public record CreateGoalRequest(string Title, decimal TargetAmount, DateTime Deadline);
-public record UpdateGoalRequest(string Title, decimal TargetAmount, DateTime Deadline);
+public record CreateGoalRequest(
+    [Required, StringLength(100, MinimumLength = 1)] string Title,
+    [Range(1.00, 10_000_000.00)] decimal                   TargetAmount,
+    [Required] DateTime                                    Deadline
+);
+
+public record UpdateGoalRequest(
+    [Required, StringLength(100, MinimumLength = 1)] string Title,
+    [Range(1.00, 10_000_000.00)] decimal                   TargetAmount,
+    [Required] DateTime                                    Deadline
+);

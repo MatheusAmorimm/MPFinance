@@ -42,8 +42,9 @@ public class FinancialFacade
     {
         var all = await BuildTransactionDtosAsync(userId, month, year);
 
-        decimal income   = all.Where(t => t.Type == "income").Sum(t => t.Amount);
-        decimal expenses = all.Where(t => t.Type == "expense").Sum(t => t.Amount);
+        decimal income      = all.Where(t => t.Type == "income").Sum(t => t.Amount);
+        decimal expenses    = all.Where(t => t.Type == "expense").Sum(t => t.Amount);
+        decimal goalInvest  = all.Where(t => t.Type == "goal").Sum(t => t.Amount);
 
         var fixedTransactions = await _fixedTransactionRepo.GetByUserIdAsync(userId);
         var upcomingBills = fixedTransactions
@@ -55,7 +56,8 @@ public class FinancialFacade
         return new HomeSummaryResponse(
             income,
             expenses,
-            income - expenses,
+            goalInvest,
+            income - expenses - goalInvest,
             upcomingBills,
             all.Take(5).ToList()
         );
@@ -75,7 +77,7 @@ public class FinancialFacade
     public async Task CreateTransactionWithImpactAsync(
         Guid userId, Guid catId, decimal amount, string desc, DateTime date, Guid? goalId = null)
     {
-        var transaction = TransactionFactory.CreateCommon(userId, catId, amount, desc, date);
+        var transaction = TransactionFactory.CreateCommon(userId, catId, amount, desc, date, goalId);
         await _transactionRepo.AddAsync(transaction);
 
         if (goalId.HasValue)
@@ -89,6 +91,49 @@ public class FinancialFacade
         }
 
         await _transactionRepo.SaveChangesAsync();
+    }
+
+    public async Task<bool> UpdateTransactionAsync(Guid userId, Guid transactionId, decimal amount, string desc, DateTime date)
+    {
+        var transaction = await _transactionRepo.GetByIdAsync(transactionId);
+        if (transaction == null || transaction.UserId != userId) return false;
+
+        if (transaction.GoalId.HasValue)
+        {
+            var goal = await _goalRepo.GetByIdAsync(transaction.GoalId.Value);
+            if (goal != null)
+            {
+                var diff = amount - transaction.Amount;
+                if (diff > 0) goal.Deposit(diff);
+                else if (diff < 0) goal.Withdraw(-diff);
+                _goalRepo.Update(goal);
+            }
+        }
+
+        transaction.Update(amount, desc, date);
+        _transactionRepo.Update(transaction);
+        await _transactionRepo.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteTransactionAsync(Guid userId, Guid transactionId)
+    {
+        var transaction = await _transactionRepo.GetByIdAsync(transactionId);
+        if (transaction == null || transaction.UserId != userId) return false;
+
+        if (transaction.GoalId.HasValue)
+        {
+            var goal = await _goalRepo.GetByIdAsync(transaction.GoalId.Value);
+            if (goal != null)
+            {
+                goal.Withdraw(transaction.Amount);
+                _goalRepo.Update(goal);
+            }
+        }
+
+        _transactionRepo.Delete(transaction);
+        await _transactionRepo.SaveChangesAsync();
+        return true;
     }
 
     public async Task RegisterUser(UserRequest request)
@@ -111,7 +156,9 @@ public class FinancialFacade
             .Select(t =>
             {
                 var cat  = categoryMap[t.CategoryId];
-                var type = cat.Type == TransactionType.Income ? "income" : "expense";
+                var type = t.IsGoalDeposit
+                    ? "goal"
+                    : (cat.Type == TransactionType.Income ? "income" : "expense");
                 return new RecentTransactionDto(t.Id, t.Description, t.Amount, t.Date, type, cat.Name);
             })
             .OrderByDescending(t => t.Date)

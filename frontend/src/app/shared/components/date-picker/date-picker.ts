@@ -51,11 +51,12 @@ export class DatePickerComponent implements ControlValueAccessor {
     inputId  = input<string>('');
     hasError = input<boolean>(false);
 
-    readonly open      = signal(false);
-    readonly value     = signal('');
-    readonly viewYear  = signal(new Date().getFullYear());
-    readonly viewMonth = signal(new Date().getMonth());
-    readonly disabled  = signal(false);
+    readonly open       = signal(false);
+    readonly openUpward = signal(false);
+    readonly value      = signal('');
+    readonly viewYear   = signal(new Date().getFullYear());
+    readonly viewMonth  = signal(new Date().getMonth());
+    readonly disabled   = signal(false);
 
     readonly WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
@@ -114,6 +115,9 @@ export class DatePickerComponent implements ControlValueAccessor {
                 this.viewYear.set(now.getFullYear());
                 this.viewMonth.set(now.getMonth());
             }
+            const rect = (this.el.nativeElement as HTMLElement).getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            this.openUpward.set(spaceBelow < 320);
         }
         this.open.update(o => !o);
         this.onTouched();

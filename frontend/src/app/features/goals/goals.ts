@@ -11,6 +11,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { GoalService } from '../../core/services/goal.service';
 import { Goal } from '../../core/models/transaction.model';
 import { TutorialService } from '../../core/services/tutorial.service';
+import { GoalCelebrationService } from '../../core/services/goal-celebration.service';
 import { DatePickerComponent } from '../../shared/components/date-picker/date-picker';
 
 @Component({
@@ -21,9 +22,10 @@ import { DatePickerComponent } from '../../shared/components/date-picker/date-pi
     styleUrl: './goals.scss',
 })
 export class Goals implements OnInit {
-    private goalService      = inject(GoalService);
-    private fb               = inject(FormBuilder);
-    private tutorialService  = inject(TutorialService);
+    private goalService         = inject(GoalService);
+    private fb                  = inject(FormBuilder);
+    private tutorialService     = inject(TutorialService);
+    private goalCelebration     = inject(GoalCelebrationService);
 
     goals = signal<Goal[]>([]);
     loading = signal(true);
@@ -76,6 +78,11 @@ export class Goals implements OnInit {
             next: goals => {
                 this.goals.set(goals);
                 this.loading.set(false);
+                for (const goal of goals) {
+                    if (goal.currentAmount >= goal.targetAmount) {
+                        this.goalCelebration.celebrate(goal);
+                    }
+                }
             },
             error: () => {
                 this.error.set('Erro ao carregar metas. Tente novamente.');
@@ -177,18 +184,31 @@ export class Goals implements OnInit {
     }
 
     // ─── Delete ───────────────────────────────────────────────────────────────
+    readonly pendingDeleteGoal = signal<Goal | null>(null);
+
     confirmDelete(goal: Goal): void {
-        if (!confirm(`Excluir a meta "${goal.title}"? Esta ação não pode ser desfeita.`)) return;
+        this.pendingDeleteGoal.set(goal);
+    }
+
+    cancelDelete(): void {
+        this.pendingDeleteGoal.set(null);
+    }
+
+    executeDelete(): void {
+        const goal = this.pendingDeleteGoal();
+        if (!goal) return;
 
         this.deletingId.set(goal.id);
         this.goalService.deleteGoal(goal.id).subscribe({
             next: () => {
                 this.goals.update(list => list.filter(g => g.id !== goal.id));
                 this.deletingId.set(null);
+                this.pendingDeleteGoal.set(null);
                 this.showToast('Meta excluída.', 'success');
             },
             error: () => {
                 this.deletingId.set(null);
+                this.pendingDeleteGoal.set(null);
                 this.showToast('Erro ao excluir meta.', 'error');
             },
         });

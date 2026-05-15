@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using MediatR;
 using MPFinance.Domain.Entities;
 using MPFinance.Domain.Events;
@@ -26,7 +27,7 @@ public class WelcomeEmailHandler : INotificationHandler<UserRegisteredEvent>
         await _verificationRepo.DeleteAllForUserAsync(user.Id);
 
         // Gera código de 6 dígitos e salva com validade de 15 minutos
-        var code = Random.Shared.Next(100_000, 999_999).ToString();
+        var code = RandomNumberGenerator.GetInt32(100_000, 1_000_000).ToString();
         var verificationCode = new EmailVerificationCode(user.Id, code, DateTime.UtcNow.AddMinutes(15));
 
         await _verificationRepo.AddAsync(verificationCode);

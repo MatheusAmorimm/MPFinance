@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Category, Goal, Transaction, CreateTransactionPayload } from '../models/transaction.model';
+import { Category, Goal, Transaction, CreateTransactionPayload, UpdateTransactionPayload } from '../models/transaction.model';
 
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
@@ -21,5 +21,13 @@ export class TransactionService {
 
     getGoals(): Observable<Goal[]> {
         return this.http.get<Goal[]>('/api/goal');
+    }
+
+    updateTransaction(id: string, payload: UpdateTransactionPayload): Observable<{ message: string }> {
+        return this.http.put<{ message: string }>(`/api/transaction/${id}`, payload);
+    }
+
+    deleteTransaction(id: string): Observable<void> {
+        return this.http.delete<void>(`/api/transaction/${id}`);
     }
 }

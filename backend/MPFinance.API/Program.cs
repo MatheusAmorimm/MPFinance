@@ -1,3 +1,5 @@
+using MediatR;
+using System.Threading.RateLimiting;
 using MPFinance.Infrastructure.Context;
 using MPFinance.Infrastructure.Repositories;
 using MPFinance.Infrastructure.Services;
@@ -5,6 +7,7 @@ using MPFinance.Domain.Interfaces;
 using MPFinance.Domain.Entities;
 using MPFinance.Domain.Enums;
 using MPFinance.Application.Services;
+using MPFinance.Application.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -14,7 +17,13 @@ using MPFinance.Infrastructure.Security;
 
 Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
-var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")!);
+
+var jwtSettings = new JwtSettings(
+    Secret:   Environment.GetEnvironmentVariable("JWT_SECRET")!,
+    Issuer:   Environment.GetEnvironmentVariable("JWT_ISSUER")!,
+    Audience: Environment.GetEnvironmentVariable("JWT_AUDIENCE")!
+);
+var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
 
 // 1. Configuração do DbContext
 builder.Services.AddDbContext<MPFinanceDbContext>();
@@ -30,7 +39,33 @@ builder.Services.AddScoped<IFixedTransactionRepository, FixedTransactionReposito
 builder.Services.AddScoped<FinancialFacade>();
 
 // 4. Registro do MediatR
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
+builder.Services.AddMediatR(typeof(FinancialFacade).Assembly);
+
+// 5. Rate Limiting por IP (endpoints de autenticação)
+builder.Services.AddRateLimiter(options =>
+{
+    static FixedWindowRateLimiterOptions Window(int limit) => new()
+    {
+        PermitLimit            = limit,
+        Window                 = TimeSpan.FromMinutes(1),
+        QueueProcessingOrder   = QueueProcessingOrder.OldestFirst,
+        QueueLimit             = 0
+    };
+
+    // Login, register, resend-verification: 5 tentativas/min por IP
+    options.AddPolicy("auth-sensitive", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => Window(5)));
+
+    // Verify-email: 10 tentativas/min por IP (OTP pode exigir retry)
+    options.AddPolicy("auth-verify", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => Window(10)));
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -48,12 +83,15 @@ builder.Services.AddAuthentication(x =>
     x.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false
+        IssuerSigningKey         = new SymmetricSecurityKey(key),
+        ValidateIssuer           = true,
+        ValidIssuer              = jwtSettings.Issuer,
+        ValidateAudience         = true,
+        ValidAudience            = jwtSettings.Audience
     };
 });
 
+builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
 builder.Services.AddScoped<IEmailVerificationRepository, EmailVerificationRepository>();
@@ -81,6 +119,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.UseRateLimiter();
 app.UseStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -115,16 +154,18 @@ static async Task SeedCategoriesAsync(MPFinanceDbContext context)
 
         // ── Despesas (ordem alfabética) ───────────────────────────────────────
         new Category("Aluguel & Moradia",         TransactionType.Expense),
-        new Category("Contas de Casa",            TransactionType.Expense),
-        new Category("Cursos & Certificações",    TransactionType.Expense),
-        new Category("Delivery & Restaurantes",   TransactionType.Expense),
-        new Category("Educação & Faculdade",      TransactionType.Expense),
-        new Category("Empréstimo & Parcelas",     TransactionType.Expense),
-        new Category("Games & Apps",              TransactionType.Expense),
-        new Category("Hobby & Esportes",          TransactionType.Expense),
-        new Category("Internet & Celular",        TransactionType.Expense),
-        new Category("Investimentos & Metas",     TransactionType.Expense),
-        new Category("Rolês & Festas",            TransactionType.Expense),
+        new Category("Condomínio",               TransactionType.Expense),
+        new Category("Conta de Água",            TransactionType.Expense),
+        new Category("Conta de Luz",             TransactionType.Expense),
+        new Category("Cursos & Certificações",   TransactionType.Expense),
+        new Category("Delivery & Restaurantes",  TransactionType.Expense),
+        new Category("Educação & Faculdade",     TransactionType.Expense),
+        new Category("Empréstimo & Parcelas",    TransactionType.Expense),
+        new Category("Games & Apps",             TransactionType.Expense),
+        new Category("Gás de Cozinha",           TransactionType.Expense),
+        new Category("Hobby & Esportes",         TransactionType.Expense),
+        new Category("Internet & Celular",       TransactionType.Expense),
+        new Category("Rolês & Festas",           TransactionType.Expense),
         new Category("Roupas & Acessórios",       TransactionType.Expense),
         new Category("Saúde & Farmácia",          TransactionType.Expense),
         new Category("Streaming & Assinaturas",   TransactionType.Expense),

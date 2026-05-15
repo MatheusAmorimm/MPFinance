@@ -15,8 +15,14 @@ public class TransactionMap : IEntityTypeConfiguration<Transaction>
         builder.Property(t => t.Description).HasMaxLength(255);
         builder.Property(t => t.Date).IsRequired();
         builder.Property(t => t.IsFixed).HasDefaultValue(false);
-        
-        // Relacionamento com Categoria
+        builder.Property(t => t.GoalId)
+               .HasColumnType("char(36)")
+               .IsRequired(false);
+
+        builder.Property(t => t.IsGoalDeposit)
+               .HasColumnType("tinyint(1)")
+               .HasDefaultValue(false);
+
         builder.HasOne<Category>()
                .WithMany()
                .HasForeignKey(t => t.CategoryId)

@@ -10,13 +10,14 @@ export interface RecentTransaction {
     description: string;
     amount: number;
     date: string;
-    type: 'income' | 'expense';
+    type: 'income' | 'expense' | 'goal';
     categoryName: string;
 }
 
 export interface HomeSummary {
     totalIncome: number;
     totalExpenses: number;
+    totalGoalInvestments?: number;
     balance: number;
     upcomingBills: UpcomingBill[];
     recentTransactions: RecentTransaction[];

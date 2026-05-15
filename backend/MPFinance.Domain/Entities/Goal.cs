@@ -22,7 +22,8 @@ public class Goal
         CreatedAt = DateTime.UtcNow;
     }
 
-    public void Deposit(decimal value) => CurrentAmount += value;
+    public void Deposit(decimal value)  => CurrentAmount += value;
+    public void Withdraw(decimal value) => CurrentAmount = Math.Max(0, CurrentAmount - value);
 
     public void UpdateDetails(string title, decimal targetAmount, DateTime deadline)
     {

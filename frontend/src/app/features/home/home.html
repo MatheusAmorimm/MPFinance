@@ -32,6 +32,13 @@
           </p>
         </article>
 
+        <article class="summary-card summary-card--goal">
+          <p class="summary-card__label">Investimentos / Metas</p>
+          <p class="summary-card__value">
+            {{ (s.totalGoalInvestments ?? 0) | currency:'BRL':'symbol':'1.2-2' }}
+          </p>
+        </article>
+
         <article
           class="summary-card"
           [class.summary-card--positive]="isPositiveBalance()"
@@ -78,6 +85,7 @@
                 class="tx-item__dot"
                 [class.tx-item__dot--income]="tx.type === 'income'"
                 [class.tx-item__dot--expense]="tx.type === 'expense'"
+                [class.tx-item__dot--goal]="tx.type === 'goal'"
                 aria-hidden="true"
               ></span>
               <span class="tx-item__info">
@@ -91,6 +99,7 @@
                 class="tx-item__amount"
                 [class.tx-item__amount--income]="tx.type === 'income'"
                 [class.tx-item__amount--expense]="tx.type === 'expense'"
+                [class.tx-item__amount--goal]="tx.type === 'goal'"
               >
                 {{ tx.type === 'income' ? '+' : '-' }}&nbsp;{{ tx.amount | currency:'BRL':'symbol':'1.2-2' }}
               </span>

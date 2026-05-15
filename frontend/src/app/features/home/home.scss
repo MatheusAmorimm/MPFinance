@@ -99,10 +99,14 @@ $verde:          #4ADE80;
 
 .summary-cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
 
-    @media (max-width: 600px) {
+    @media (max-width: 900px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 480px) {
         grid-template-columns: 1fr;
     }
 }
@@ -143,6 +147,13 @@ $verde:          #4ADE80;
 
     .summary-card__label { color: $vermelho; }
     .summary-card__value { color: $vermelho; }
+}
+
+.summary-card--goal {
+    border-color: rgba(#FB923C, 0.3);
+
+    .summary-card__label { color: #FB923C; }
+    .summary-card__value { color: #FB923C; }
 }
 
 .summary-card--positive {
@@ -244,6 +255,7 @@ $verde:          #4ADE80;
 
     &.tx-item__dot--income  { background: $amarelo-limao; }
     &.tx-item__dot--expense { background: $vermelho; }
+    &.tx-item__dot--goal    { background: #FB923C; }
 }
 
 .tx-item__info {
@@ -281,6 +293,7 @@ $verde:          #4ADE80;
 
     &.tx-item__amount--income  { color: $amarelo-limao; }
     &.tx-item__amount--expense { color: $vermelho; }
+    &.tx-item__amount--goal    { color: #FB923C; }
 }
 
 /* ─── Mobile ─────────────────────────────────── */

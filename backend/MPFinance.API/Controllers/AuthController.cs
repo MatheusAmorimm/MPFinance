@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MPFinance.Application.Services;
 using MPFinance.Domain.Interfaces;
 using MPFinance.Domain.Entities;
@@ -32,6 +34,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("auth-sensitive")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         var existing = await _userRepository.GetByEmailAsync(request.Email);
@@ -50,6 +53,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth-sensitive")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
@@ -65,6 +69,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("resend-verification")]
+    [EnableRateLimiting("auth-sensitive")]
     public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
@@ -80,6 +85,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("verify-email")]
+    [EnableRateLimiting("auth-verify")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
@@ -101,7 +107,22 @@ public class AuthController : ControllerBase
     }
 }
 
-public record RegisterRequest(string Name, string Email, string Password);
-public record LoginRequest(string Email, string Password);
-public record VerifyEmailRequest(string Email, string Code);
-public record ResendVerificationRequest(string Email);
+public record RegisterRequest(
+    [Required, StringLength(100, MinimumLength = 2)] string Name,
+    [Required, EmailAddress]                         string Email,
+    [Required, StringLength(100, MinimumLength = 8)] string Password
+);
+
+public record LoginRequest(
+    [Required, EmailAddress] string Email,
+    [Required]               string Password
+);
+
+public record VerifyEmailRequest(
+    [Required, EmailAddress]                      string Email,
+    [Required, StringLength(6, MinimumLength = 6)] string Code
+);
+
+public record ResendVerificationRequest(
+    [Required, EmailAddress] string Email
+);

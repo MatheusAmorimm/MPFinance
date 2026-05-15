@@ -3,6 +3,7 @@ import {
     Component,
     OnInit,
     computed,
+    effect,
     inject,
     signal,
 } from '@angular/core';
@@ -16,9 +17,22 @@ import { forkJoin } from 'rxjs';
 import { TransactionService } from '../../core/services/transaction.service';
 import { Category, Goal, Transaction, CreateTransactionPayload } from '../../core/models/transaction.model';
 import { TutorialService } from '../../core/services/tutorial.service';
+import { GoalCelebrationService } from '../../core/services/goal-celebration.service';
 import { DatePickerComponent } from '../../shared/components/date-picker/date-picker';
 
 export type TransactionMode = 'income' | 'expense' | 'goal';
+
+const BILL_CATEGORY_NAMES = [
+    'Aluguel & Moradia',
+    'Condomínio',
+    'Conta de Água',
+    'Conta de Luz',
+    'Empréstimo & Parcelas',
+    'Gás de Cozinha',
+    'Streaming & Assinaturas',
+    'Internet & Celular',
+    'Educação & Faculdade',
+];
 
 @Component({
     selector: 'app-transactions',
@@ -31,6 +45,7 @@ export class Transactions implements OnInit {
     private readonly service         = inject(TransactionService);
     private readonly fb              = inject(FormBuilder);
     private readonly tutorialService = inject(TutorialService);
+    private readonly goalCelebration = inject(GoalCelebrationService);
 
     // ─── Estado de dados ─────────────────────────────────────────────────────
     readonly transactions = signal<Transaction[]>([]);
@@ -38,13 +53,20 @@ export class Transactions implements OnInit {
     readonly goals        = signal<Goal[]>([]);
 
     // ─── Estado da UI ────────────────────────────────────────────────────────
-    readonly activeMode   = signal<TransactionMode>('expense');
-    readonly currentMonth = signal(0);
-    readonly currentYear  = signal(0);
-    readonly loading      = signal(true);
-    readonly submitting   = signal(false);
-    readonly toastMessage = signal<string | null>(null);
-    readonly toastType    = signal<'success' | 'error'>('success');
+    readonly activeMode         = signal<TransactionMode>('expense');
+    readonly selectedCategoryId = signal('');
+    readonly currentMonth       = signal(0);
+    readonly currentYear        = signal(0);
+    readonly loading            = signal(true);
+    readonly submitting         = signal(false);
+    readonly toastMessage       = signal<string | null>(null);
+    readonly toastType          = signal<'success' | 'error'>('success');
+
+    // ─── Estado de edição/exclusão ───────────────────────────────────────────
+    readonly editingTransaction  = signal<Transaction | null>(null);
+    readonly editSubmitting      = signal(false);
+    readonly deletingId          = signal<string | null>(null);
+    readonly pendingDeleteTx     = signal<Transaction | null>(null);
 
     // ─── Derivados ───────────────────────────────────────────────────────────
     readonly incomeCategories  = computed(() => this.categories().filter(c => c.type === 'income'));
@@ -53,11 +75,20 @@ export class Transactions implements OnInit {
         this.activeMode() === 'income' ? this.incomeCategories() : this.expenseCategories()
     );
 
-    readonly totalIncome   = computed(() =>
+    readonly showDueDate = computed(() => {
+        if (this.activeMode() !== 'expense') return false;
+        const cat = this.categories().find(c => c.id === this.selectedCategoryId());
+        return cat ? BILL_CATEGORY_NAMES.includes(cat.name) : false;
+    });
+
+    readonly totalIncome     = computed(() =>
         this.transactions().filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
     );
-    readonly totalExpenses = computed(() =>
+    readonly totalExpenses   = computed(() =>
         this.transactions().filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+    );
+    readonly totalGoalInvest = computed(() =>
+        this.transactions().filter(t => t.type === 'goal').reduce((s, t) => s + t.amount, 0)
     );
 
     readonly monthLabel = computed(() => {
@@ -66,7 +97,7 @@ export class Transactions implements OnInit {
         return s.charAt(0).toUpperCase() + s.slice(1);
     });
 
-    // ─── Formulário ──────────────────────────────────────────────────────────
+    // ─── Formulários ─────────────────────────────────────────────────────────
     readonly form = this.fb.group({
         categoryId:  ['',   Validators.required],
         goalId:      [''],
@@ -75,13 +106,35 @@ export class Transactions implements OnInit {
         date:        ['',   Validators.required],
     });
 
+    readonly editForm = this.fb.group({
+        amount:      [null as number | null, [Validators.required, Validators.min(0.01)]],
+        description: ['',   Validators.maxLength(255)],
+        date:        ['',   Validators.required],
+    });
+
     // ─── Ciclo de vida ───────────────────────────────────────────────────────
+    constructor() {
+        effect(() => {
+            const dateCtrl = this.form.get('date')!;
+            if (this.showDueDate()) {
+                dateCtrl.setValidators(Validators.required);
+            } else {
+                dateCtrl.clearValidators();
+            }
+            dateCtrl.updateValueAndValidity({ emitEvent: false });
+        });
+    }
+
     ngOnInit(): void {
         this.tutorialService.startFor('transactions');
         const now = new Date();
         this.currentMonth.set(now.getMonth() + 1);
         this.currentYear.set(now.getFullYear());
         this.form.patchValue({ date: this.todayIso() });
+
+        this.form.get('categoryId')!.valueChanges.subscribe(v => {
+            this.selectedCategoryId.set(v ?? '');
+        });
 
         forkJoin({
             categories: this.service.getCategories(),
@@ -102,14 +155,14 @@ export class Transactions implements OnInit {
 
     // ─── Navegação de mês ────────────────────────────────────────────────────
     previousMonth(): void {
-        const d = new Date(this.currentYear(), this.currentMonth() - 2, 1); // -2 = mês anterior (0-indexed)
+        const d = new Date(this.currentYear(), this.currentMonth() - 2, 1);
         this.currentMonth.set(d.getMonth() + 1);
         this.currentYear.set(d.getFullYear());
         this.loadTransactions();
     }
 
     nextMonth(): void {
-        const d = new Date(this.currentYear(), this.currentMonth(), 1); // mês atual em 0-indexed já é o próximo
+        const d = new Date(this.currentYear(), this.currentMonth(), 1);
         this.currentMonth.set(d.getMonth() + 1);
         this.currentYear.set(d.getFullYear());
         this.loadTransactions();
@@ -135,7 +188,7 @@ export class Transactions implements OnInit {
         goalCtrl.updateValueAndValidity();
     }
 
-    // ─── Submit ──────────────────────────────────────────────────────────────
+    // ─── Submit (novo lançamento) ─────────────────────────────────────────────
     onSubmit(): void {
         if (this.form.invalid) {
             this.form.markAllAsTouched();
@@ -170,12 +223,93 @@ export class Transactions implements OnInit {
                 this.submitting.set(false);
                 this.showToast('Lançamento registrado com sucesso!', 'success');
                 this.form.reset({ date: this.todayIso() });
-                this.setMode(mode); // restaura validators
+                this.setMode(mode);
                 this.loadTransactions();
+                if (mode === 'goal' && goalId) {
+                    this.service.getGoals().subscribe(goals => {
+                        const updated = goals.find(g => g.id === goalId);
+                        if (updated && updated.currentAmount >= updated.targetAmount) {
+                            this.goalCelebration.celebrate(updated);
+                        }
+                    });
+                }
             },
             error: () => {
                 this.submitting.set(false);
                 this.showToast('Erro ao registrar o lançamento.', 'error');
+            },
+        });
+    }
+
+    // ─── Edição ───────────────────────────────────────────────────────────────
+    openEdit(tx: Transaction): void {
+        this.editingTransaction.set(tx);
+        this.editForm.setValue({
+            amount:      tx.amount,
+            description: tx.description ?? '',
+            date:        tx.date.substring(0, 10),
+        });
+    }
+
+    closeEdit(): void {
+        this.editingTransaction.set(null);
+    }
+
+    onEditSubmit(): void {
+        if (this.editForm.invalid) {
+            this.editForm.markAllAsTouched();
+            return;
+        }
+
+        const tx = this.editingTransaction();
+        if (!tx) return;
+
+        const { amount, description, date } = this.editForm.value;
+
+        this.editSubmitting.set(true);
+        this.service.updateTransaction(tx.id, {
+            amount:      amount!,
+            description: description ?? '',
+            date:        `${date}T12:00:00.000Z`,
+        }).subscribe({
+            next: () => {
+                this.editSubmitting.set(false);
+                this.editingTransaction.set(null);
+                this.showToast('Lançamento atualizado!', 'success');
+                this.loadTransactions();
+            },
+            error: () => {
+                this.editSubmitting.set(false);
+                this.showToast('Erro ao atualizar o lançamento.', 'error');
+            },
+        });
+    }
+
+    // ─── Exclusão ────────────────────────────────────────────────────────────
+    onDelete(tx: Transaction): void {
+        this.pendingDeleteTx.set(tx);
+    }
+
+    cancelDeleteTx(): void {
+        this.pendingDeleteTx.set(null);
+    }
+
+    executeDeleteTx(): void {
+        const tx = this.pendingDeleteTx();
+        if (!tx) return;
+
+        this.deletingId.set(tx.id);
+        this.service.deleteTransaction(tx.id).subscribe({
+            next: () => {
+                this.deletingId.set(null);
+                this.pendingDeleteTx.set(null);
+                this.transactions.update(list => list.filter(t => t.id !== tx.id));
+                this.showToast('Lançamento excluído.', 'success');
+            },
+            error: () => {
+                this.deletingId.set(null);
+                this.pendingDeleteTx.set(null);
+                this.showToast('Erro ao excluir o lançamento.', 'error');
             },
         });
     }

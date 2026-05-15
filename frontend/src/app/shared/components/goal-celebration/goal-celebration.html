@@ -1,0 +1,31 @@
+@if (visible()) {
+  <div
+    class="celebration-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Meta concluída"
+    (click)="dismiss()"
+  >
+    <div class="celebration-card" (click)="$event.stopPropagation()">
+
+      <!-- ─── Animação Lottie ─── -->
+      <div class="celebration-anim" aria-hidden="true">
+        <div #lottieContainer class="lottie-player"></div>
+      </div>
+
+      <!-- ─── Texto ─── -->
+      <h1 class="celebration-title">Parabéns!</h1>
+      <p class="celebration-subtitle">
+        Meta <span class="celebration-goal-name">"{{ goal()!.title }}"</span> Batida!
+      </p>
+      <p class="celebration-amount">
+        🎯 {{ goal()!.targetAmount | currency:'BRL':'symbol':'1.2-2' }} alcançados!
+      </p>
+
+      <button type="button" class="celebration-btn" (click)="dismiss()">
+        Continuar
+      </button>
+
+    </div>
+  </div>
+}

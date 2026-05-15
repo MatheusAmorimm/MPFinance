@@ -28,6 +28,7 @@ export class Home implements OnInit {
     readonly currentMonth = signal('');
 
     readonly isPositiveBalance = computed(() => (this.summary()?.balance ?? 0) >= 0);
+    readonly goalInvestments   = computed(() => this.summary()?.totalGoalInvestments ?? 0);
 
     ngOnInit(): void {
         this.tutorialService.startFor('home');

@@ -3,6 +3,7 @@ namespace MPFinance.Application.DTOs;
 public record HomeSummaryResponse(
     decimal TotalIncome,
     decimal TotalExpenses,
+    decimal TotalGoalInvestments,
     decimal Balance,
     IEnumerable<UpcomingBillDto> UpcomingBills,
     IEnumerable<RecentTransactionDto> RecentTransactions

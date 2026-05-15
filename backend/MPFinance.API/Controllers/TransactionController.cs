@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MPFinance.Application.DTOs;
@@ -57,6 +58,22 @@ public class TransactionController : ControllerBase
         }
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTransactionRequest request)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+        var updated = await _financialFacade.UpdateTransactionAsync(userId, id, request.Amount, request.Description, request.Date);
+        return updated ? Ok(new { message = "Lançamento atualizado." }) : NotFound();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+        var deleted = await _financialFacade.DeleteTransactionAsync(userId, id);
+        return deleted ? NoContent() : NotFound();
+    }
+
     // ─── Helper ───────────────────────────────────────────────────────────────
 
     private bool TryGetUserId(out Guid userId)
@@ -68,9 +85,15 @@ public class TransactionController : ControllerBase
 }
 
 public record CreateTransactionRequest(
-    Guid CategoryId,
-    decimal Amount,
-    string Description,
-    DateTime Date,
-    Guid? GoalId
+    [Required] Guid                                                    CategoryId,
+    [Range(0.01, 1_000_000.00)] decimal                               Amount,
+    [Required, StringLength(255, MinimumLength = 1)] string           Description,
+    [Required] DateTime                                                Date,
+    Guid?                                                              GoalId
+);
+
+public record UpdateTransactionRequest(
+    [Range(0.01, 1_000_000.00)] decimal                     Amount,
+    [Required, StringLength(255, MinimumLength = 1)] string  Description,
+    [Required] DateTime                                      Date
 );

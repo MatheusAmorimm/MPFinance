@@ -1,8 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MPFinance.Domain.Entities;
 using MPFinance.Domain.Interfaces;
-using System.Security.Claims;
 
 namespace MPFinance.API.Controllers;
 
@@ -55,8 +57,8 @@ public class ProfileController : ControllerBase
         var user = await GetCurrentUserAsync();
         if (user is null) return Unauthorized();
 
-        await IssueCodeAsync(user.Id);
-        await _emailService.SendPasswordChangeCodeAsync(user.Email, user.Name, _lastCode!);
+        var code = await IssueCodeAsync(user.Id);
+        await _emailService.SendPasswordChangeCodeAsync(user.Email, user.Name, code);
 
         return Ok(new { message = "Código enviado para o seu e-mail." });
     }
@@ -105,8 +107,8 @@ public class ProfileController : ControllerBase
         user.ClearPendingEmail();
         _userRepo.Update(user);
 
-        await IssueCodeAsync(user.Id);
-        await _emailService.SendEmailChangeCodeAsync(user.Email, user.Name, _lastCode!, isNewEmail: false);
+        var code = await IssueCodeAsync(user.Id);
+        await _emailService.SendEmailChangeCodeAsync(user.Email, user.Name, code, isNewEmail: false);
         await _userRepo.SaveChangesAsync();
 
         return Ok(new { message = "Código enviado para o seu e-mail atual." });
@@ -139,8 +141,8 @@ public class ProfileController : ControllerBase
         user.StartEmailChange(req.NewEmail);
         _userRepo.Update(user);
 
-        await IssueCodeAsync(user.Id);
-        await _emailService.SendEmailChangeCodeAsync(req.NewEmail, user.Name, _lastCode!, isNewEmail: true);
+        var code = await IssueCodeAsync(user.Id);
+        await _emailService.SendEmailChangeCodeAsync(req.NewEmail, user.Name, code, isNewEmail: true);
         await _userRepo.SaveChangesAsync();
 
         return Ok(new { message = "Código enviado para o novo e-mail." });
@@ -177,19 +179,29 @@ public class ProfileController : ControllerBase
         return await _userRepo.GetByIdAsync(userId);
     }
 
-    private string? _lastCode;
-
-    private async Task IssueCodeAsync(Guid userId)
+    private async Task<string> IssueCodeAsync(Guid userId)
     {
         await _codeRepo.DeleteAllForUserAsync(userId);
-        _lastCode = Random.Shared.Next(100000, 999999).ToString();
-        var code = new EmailVerificationCode(userId, _lastCode, DateTime.UtcNow.AddMinutes(CodeExpiryMinutes));
-        await _codeRepo.AddAsync(code);
+        var code = RandomNumberGenerator.GetInt32(100_000, 1_000_000).ToString();
+        var verificationCode = new EmailVerificationCode(userId, code, DateTime.UtcNow.AddMinutes(CodeExpiryMinutes));
+        await _codeRepo.AddAsync(verificationCode);
         await _codeRepo.SaveChangesAsync();
+        return code;
     }
 }
 
 // ─── Request records ──────────────────────────────────────────────────────────
-public record ConfirmPasswordRequest(string Code, string NewPassword);
-public record SubmitNewEmailRequest(string Code, string NewEmail, string ConfirmEmail);
-public record VerifyCodeRequest(string Code);
+public record ConfirmPasswordRequest(
+    [Required, StringLength(6, MinimumLength = 6)]  string Code,
+    [Required, StringLength(100, MinimumLength = 8)] string NewPassword
+);
+
+public record SubmitNewEmailRequest(
+    [Required, StringLength(6, MinimumLength = 6)] string Code,
+    [Required, EmailAddress]                       string NewEmail,
+    [Required, EmailAddress]                       string ConfirmEmail
+);
+
+public record VerifyCodeRequest(
+    [Required, StringLength(6, MinimumLength = 6)] string Code
+);

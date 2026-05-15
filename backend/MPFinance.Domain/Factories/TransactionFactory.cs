@@ -5,9 +5,9 @@ namespace MPFinance.Domain.Factories;
 public static class TransactionFactory
 {
     // Método que cria uma transação comum ou prepara os dados para uma fixa
-    public static Transaction CreateCommon(Guid userId, Guid catId, decimal amount, string desc, DateTime date)
+    public static Transaction CreateCommon(Guid userId, Guid catId, decimal amount, string desc, DateTime date, Guid? goalId = null)
     {
-        return new Transaction(userId, catId, amount, desc, date, isFixed: false);
+        return new Transaction(userId, catId, amount, desc, date, isFixed: false, goalId: goalId);
     }
 
     public static FixedTransaction CreateFixed(Guid userId, Guid catId, decimal amount, string desc, int day)

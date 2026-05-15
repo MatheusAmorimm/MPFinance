@@ -19,7 +19,7 @@ export interface Transaction {
     description: string;
     amount: number;
     date: string;
-    type: 'income' | 'expense';
+    type: 'income' | 'expense' | 'goal';
     categoryName: string;
 }
 
@@ -29,4 +29,10 @@ export interface CreateTransactionPayload {
     description: string;
     date: string;
     goalId?: string;
+}
+
+export interface UpdateTransactionPayload {
+    amount: number;
+    description: string;
+    date: string;
 }
