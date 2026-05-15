@@ -212,7 +212,7 @@ dotnet run
 ```
 
 As migrations são aplicadas automaticamente na inicialização. API disponível em `http://localhost:5000`.  
-Swagger em `http://localhost:5000/swagger`.
+Swagger em `http://localhost:porta/swagger`.
 
 ### 3. Frontend
 
@@ -230,17 +230,17 @@ Crie um arquivo `.env` na raiz do projeto:
 ```env
 # Banco de dados
 MYSQL_ROOT_PASSWORD=sua_senha_root
-MYSQL_DATABASE=mpfinance_db
-MYSQL_USER=admin_mpfinance
+MYSQL_DATABASE=seu_db
+MYSQL_USER=seu_user
 MYSQL_PASSWORD=sua_senha
 
 # Backend
-DB_CONNECTION_STRING="Server=localhost;Database=mpfinance_db;Uid=admin_mpfinance;Pwd=sua_senha;"
+DB_CONNECTION_STRING="Server=localhost;Database=seu_db;Uid=seu_user;Pwd=sua_senha;"
 
 # JWT
 JWT_SECRET=seu_secret_aqui_minimo_32_caracteres
-JWT_ISSUER=mpfinance_api
-JWT_AUDIENCE=mpfinance_angular
+JWT_ISSUER=sua_api
+JWT_AUDIENCE=seu_app_angular
 
 # E-mail (Gmail com App Password)
 SMTP_HOST=smtp.gmail.com
@@ -266,8 +266,8 @@ O Docker Compose garante que:
 
 | Serviço | Porta exposta | Descrição |
 |---|---|---|
-| `mpfinance_db` | 3306 | MySQL 8.0 |
-| `mpfinance_api` | 5000 | ASP.NET Core API |
+| `seu_db` | xxxx | MySQL 8.0 |
+| `sua_api` | xxxx | ASP.NET Core API |
 
 Para rebuild após alterações no código:
 
